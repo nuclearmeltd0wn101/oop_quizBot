@@ -1,0 +1,5 @@
+# ignore builds 
+out/
+
+# foolproof safety measure against env vars private data exposure
+.idea/workspace.xml
