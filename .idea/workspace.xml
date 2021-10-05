@@ -46,13 +46,28 @@
     <property name="project.structure.side.proportion" value="0.2" />
     <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
   </component>
-  <component name="RunManager" selected="Application.quizbot">
+  <component name="RunManager" selected="JUnit.QuizLogicTest">
     <configuration name="quizbot" type="Application" factoryName="Application">
       <envs>
         <env name="tgBotToken" value="" />
       </envs>
       <option name="MAIN_CLASS_NAME" value="com.company.Main" />
       <module name="QuizBot" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="QuizLogicTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="QuizBot" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.company.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.company" />
+      <option name="MAIN_CLASS_NAME" value="com.company.QuizLogicTest" />
+      <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -83,7 +98,13 @@
     <list>
       <item itemvalue="Application.quizbot" />
       <item itemvalue="Maven.project" />
+      <item itemvalue="JUnit.QuizLogicTest" />
     </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.QuizLogicTest" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -94,6 +115,7 @@
       <option name="presentableId" value="Default" />
       <updated>1632241221999</updated>
       <workItem from="1633268878720" duration="16000" />
+      <workItem from="1633354109947" duration="133000" />
     </task>
     <servers />
   </component>
