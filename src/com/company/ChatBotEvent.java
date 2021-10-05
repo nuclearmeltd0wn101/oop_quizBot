@@ -8,22 +8,22 @@ public class ChatBotEvent {
     public final boolean isPrivateChat;
     public final boolean isMentioned;
 
-    public ChatBotEvent(long chatId, long senderId, String senderUserame,
+    public ChatBotEvent(long chatId, long senderId, String senderUsername,
                         String message, boolean isPrivateChat, boolean isMentioned)
     {
         this.chatId = chatId;
         this.senderId = senderId;
-        this.senderUsername = senderUserame;
+        this.senderUsername = senderUsername;
         this.message = message;
         this.isPrivateChat = isPrivateChat;
         this.isMentioned = isMentioned;
     }
 
-    public ChatBotEvent(long senderId, String senderUserame, String message)
+    public ChatBotEvent(long senderId, String senderUsername, String message)
     {
         this.chatId = senderId;
         this.senderId = senderId;
-        this.senderUsername = senderUserame;
+        this.senderUsername = senderUsername;
         this.message = message;
         this.isPrivateChat = true;
         this.isMentioned = false;

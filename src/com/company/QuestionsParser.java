@@ -4,12 +4,12 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+public class QuestionsParser {
 
-public class QuestionBase {
-    private final ArrayList<QuizQuestion> questions;
-    
-    public QuestionBase(String questionsFile, String separatorRegex) {
-        questions = new ArrayList<>();
+    //todo: передавать сущность, которая умеет парсить
+    // answ: пажалста! сущность в виде гномика
+    public static ArrayList<QuizQuestion> fromTextFile(String questionsFile, String separatorRegex) {
+        var result = new ArrayList<QuizQuestion>();
         try (var file = new BufferedReader(new FileReader(questionsFile)))
         {
             String s;
@@ -19,24 +19,13 @@ public class QuestionBase {
                 if (splittedLine.length < 2)
                     continue;
 
-                questions.add( new QuizQuestion(id, splittedLine[0], splittedLine[1]) );
+                result.add( new QuizQuestion(id, splittedLine[0], splittedLine[1]) );
                 id++;
             }
         }
         catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
-    }
-
-    public int size()
-    {
-        return questions.size();
-    }
-
-    public QuizQuestion getQuestionById(int id)
-    {
-        if ((id < 0) || (id >= questions.size()))
-            throw new IllegalArgumentException();
-        return questions.get(id);
+        return result;
     }
 }

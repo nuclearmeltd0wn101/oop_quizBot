@@ -3,57 +3,59 @@ package com.company;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Field;
-
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.ArrayList;
 
 class QuizLogicTest {
-    QuestionBase questionBase = new QuestionBase("quiz_questions.txt", "\\*");
-    QuizLogic botLogic = new QuizLogic(questionBase);
-    @Test
-    void randomMessage() {
-        Assert.assertEquals
-                ("Напишите /help для получения справочного сообщения",
-                        botLogic.handler(new ChatBotEvent(0,null,"help")).message);
-    }
-    @Test
-    void helper()
-    {
-        Assert.assertEquals
-                ("Привет, я - Викторина-бот!\nНапиши \"вопрос\" и я задам тебе вопрос",
-                        botLogic.handler(new ChatBotEvent(0,null,"/help")).message);
-    }
-    @Test
-    void question()
-    {
-        Assert.assertEquals
-                (true,botLogic.handler(new ChatBotEvent(0,null,"вопрос"))
-                        .message.contains("Подсказка к ответу: начинается с"));
+    ArrayList<QuizQuestion> questions;
+    QuizLogic botLogic;
+
+    String testQuestion = "test question 1";
+    String testAnswer = "testanswer";
+
+    public QuizLogicTest() {
+        questions = new ArrayList<>();
+        questions.add(new QuizQuestion(0, testQuestion, testAnswer));
+        botLogic = new QuizLogic(questions);
     }
 
     @Test
-    void RightAnswer() throws NoSuchFieldException, IllegalAccessException {
-        botLogic.handler(new ChatBotEvent(0,null,"вопрос"));
-        Field numberOfquestion=QuizLogic.class.getDeclaredField("m_currentQuestionNumber");
-        numberOfquestion.setAccessible(true);
-        Integer number = (int)numberOfquestion.get(botLogic);
-        Field answer=QuizQuestion.class.getDeclaredField("answer");
-        answer.setAccessible(true);
-        var question=questionBase.getQuestionById(number);
-        String StringAnswer=(String)answer.get(question);
-        Assert.assertEquals(botLogic.handler(new ChatBotEvent(0,null,StringAnswer)).message,"Вы угадали!");
+    void handler_randomMessage_helpHint() {
+        var eventRandomMessage= new ChatBotEvent(0,null,"help");
+        var response = botLogic.handler(eventRandomMessage);
+        Assert.assertEquals("Напишите /help для получения справочного сообщения", response.message);
     }
     @Test
-    void NotRightAnswer() throws NoSuchFieldException, IllegalAccessException {
-        botLogic.handler(new ChatBotEvent(0,null,"вопрос"));
-        Field numberOfquestion=QuizLogic.class.getDeclaredField("m_currentQuestionNumber");
-        numberOfquestion.setAccessible(true);
-        Integer number = (int)numberOfquestion.get(botLogic);
-        Field answer=QuizQuestion.class.getDeclaredField("answer");
-        answer.setAccessible(true);
-        var question=questionBase.getQuestionById(number+1);
-        String StringAnswer=(String)answer.get(question);
-        Assert.assertEquals(botLogic.handler(new ChatBotEvent(0,null,StringAnswer)).message,"Вы не угадали!");
+    void handler_helpMessage_help()
+    {
+        var eventRandomMessage= new ChatBotEvent(0,null,"/help");
+        var response = botLogic.handler(eventRandomMessage);
+        Assert.assertEquals("Привет, я - Викторина-бот!\nНапиши \"вопрос\" и я задам тебе вопрос",
+                        response.message);
+    }
+    @Test
+    void handler_questionMessage_question() {
+        var eventRandomMessage= new ChatBotEvent(0,null,"вопрос");
+        var response = botLogic.handler(eventRandomMessage);
+        Assert.assertEquals(true, response.message.contains("Подсказка к ответу: начинается с"));
+    }
+
+    @Test
+    void handler_quizCorrectAnswer() {
+        var eventGiveQuestion = new ChatBotEvent(0,null,"вопрос");
+        var eventAnswer = new ChatBotEvent(0,null, testAnswer);
+
+        botLogic.handler(eventGiveQuestion);
+        var response = botLogic.handler(eventAnswer);
+        Assert.assertEquals(response.message,"Вы угадали!");
+    }
+    @Test
+    void handler_quizWrongAnswer() {
+        var eventGiveQuestion = new ChatBotEvent(0,null,"вопрос");
+        var eventAnswer = new ChatBotEvent(0,null, "$#@!");
+
+        botLogic.handler(eventGiveQuestion);
+        var response = botLogic.handler(eventAnswer);
+        Assert.assertEquals(response.message,"Вы не угадали!");
     }
 
 }

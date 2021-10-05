@@ -3,23 +3,23 @@ package com.company;
 import java.util.Scanner;
 
 public class ConsoleChatWrapper implements IChatBotWrapper {
-    private final IChatBotLogic m_botLogic;
-    private boolean m_isRunning;
+    private final IChatBotLogic botLogic;
+    private boolean isRunning;
 
     public ConsoleChatWrapper(IChatBotLogic botLogic)
     {
-        m_botLogic = botLogic;
+        this.botLogic = botLogic;
     }
 
     public void run() {
         var scan = new Scanner(System.in);
-        m_isRunning = true;
+        isRunning = true;
         System.out.println("Console Chat initialized.");
-        while (m_isRunning) {
+        while (isRunning) {
             System.out.print("Message >> ");
             var message = scan.nextLine();
             var event = new ChatBotEvent(0, "", message);
-            var response = m_botLogic.handler(event);
+            var response = botLogic.handler(event);
             if (response != null) {
                 System.out.print("Bot response >> ");
                 System.out.println(response.message);
@@ -28,6 +28,6 @@ public class ConsoleChatWrapper implements IChatBotWrapper {
     }
 
     public void stop() {
-        m_isRunning = false;
+        isRunning = false;
     }
 }

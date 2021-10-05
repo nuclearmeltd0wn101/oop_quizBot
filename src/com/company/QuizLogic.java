@@ -1,16 +1,29 @@
 package com.company;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 public class QuizLogic implements IChatBotLogic {
-    private final QuestionBase m_questionBase;
-    private boolean m_isQuestion_present;
-    private int m_currentQuestionNumber;
+
+    private static final String greetMessagePM
+            = "Привет, я - Викторина-бот!\nНапиши \"вопрос\" и я задам тебе вопрос";
+    private static final String greetMessageChat
+            = "Привет, я - Викторина-бот!\nНапиши @Quiz_bot_bot, затем любое сообщение и я задам тебе вопрос";
+    private static final String messageHelpHint
+            = "Напишите /help для получения справочного сообщения";
+    private static final String messageFormatQuestion
+            = "Вопрос: %s\nПодсказка к ответу: начинается с \"%s\", длина %d символов";
+    private static final String messageRightAnswer = "Вы угадали!";
+    private static final String messageWrongAnswer = "Вы не угадали!";
+
+    private final ArrayList<QuizQuestion> questions;
+    private boolean isQuestion_present;
+    private int currentQuestionNumber;
     private final Random rand;
 
-    public QuizLogic(QuestionBase questionBase)
+    public QuizLogic(ArrayList<QuizQuestion> questions)
     {
-        m_questionBase = questionBase;
+        this.questions = questions;
         rand = new Random();
     }
 
@@ -20,38 +33,34 @@ public class QuizLogic implements IChatBotLogic {
 
         if ("/help".equals(event.message))
             return event.toResponse(
-                    (!event.isPrivateChat)
-                            ? "Привет, я - Викторина-бот!\nНапиши @Quiz_bot_bot, затем любое сообщение и я задам тебе вопрос"
-                            : "Привет, я - Викторина-бот!\nНапиши \"вопрос\" и я задам тебе вопрос");
+                    !event.isPrivateChat
+                            ? greetMessageChat
+                            : greetMessagePM);
 
         if (event.message.contains("вопрос")) {
-            m_currentQuestionNumber = rand.nextInt(m_questionBase.size());
+            currentQuestionNumber = rand.nextInt(questions.size());
 
-            var question = m_questionBase
-                    .getQuestionById(m_currentQuestionNumber);
+            var question = questions.get(currentQuestionNumber);
 
-            var text = String.format(
-                    "Вопрос: %s\nПодсказка к ответу: начинается с \"%s\", длина %d символов",
+            var text = String.format(messageFormatQuestion,
                     question.question,
                     question.answerHintFirstLetter(),
                     question.answerHintLength()
             );
 
-            m_isQuestion_present = true;
+            isQuestion_present = true;
             return event.toResponse(text);
         }
-        if (m_isQuestion_present) {
-            var question = m_questionBase
-                    .getQuestionById(m_currentQuestionNumber);
+        if (isQuestion_present) {
+            var question = questions.get(currentQuestionNumber);
             if (question.validateAnswer(event.message.toLowerCase())) {
-                m_isQuestion_present = false;
-
-                return event.toResponse("Вы угадали!");
+                isQuestion_present = false;
+                return event.toResponse(messageRightAnswer);
             }
             else
-                return event.toResponse("Вы не угадали!");
+                return event.toResponse(messageWrongAnswer);
         }
 
-        return event.toResponse("Напишите /help для получения справочного сообщения");
+        return event.toResponse(messageHelpHint);
     }
 }
