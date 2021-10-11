@@ -26,11 +26,14 @@ public class QuizDBRAM implements IQuizDB {
             return null;
         var table = scoreTable.get(chatId);
 
-        var result = new ArrayList<QuizScore>();
+        var resultList = new ArrayList<QuizScore>();
         for (var entry : table.entrySet())
-            result.add(new QuizScore(chatId, entry.getKey(), entry.getValue()));
+            resultList.add(new QuizScore(chatId, entry.getKey(), entry.getValue()));
 
-        return (QuizScore[]) result.toArray();
+        var result = new QuizScore[resultList.size()];
+        resultList.toArray(result);
+
+        return result;
     }
 
     public long getState(long chatId) {
