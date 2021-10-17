@@ -1,18 +1,25 @@
 package com.company;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 
 public class QuizDBRAM implements IQuizDB {
     private Hashtable<Long, Hashtable<Long, Long>> scoreTable;
     private Hashtable<Long, Long> stateTable;
-    private Hashtable<Long, Long> questionIdTable;
+    private Hashtable<Long, Integer> questionIdTable;
+    private Hashtable<Long, Integer> wrongAnswersCountTable;
+    private Hashtable<Long, Integer> giveUpRequestsCountTable;
+    private Hashtable<Long, String> userNamesTable;
 
     public QuizDBRAM()
     {
         scoreTable = new Hashtable<>();
         stateTable = new Hashtable<>();
         questionIdTable = new Hashtable<>();
+        wrongAnswersCountTable = new Hashtable<>();
+        giveUpRequestsCountTable = new Hashtable<>();
+        userNamesTable = new Hashtable<>();
     }
 
     public void scoreIncrement(long chatId, long userId) {
@@ -32,27 +39,61 @@ public class QuizDBRAM implements IQuizDB {
 
         var result = new QuizScore[resultList.size()];
         resultList.toArray(result);
+        Arrays.sort(result, (o1, o2) -> (int)Math.signum(o2.score - o1.score));
 
         return result;
     }
 
     public long getState(long chatId) {
-        if (stateTable.containsKey(chatId))
-            return stateTable.get(chatId);
-        return 0;
+        return stateTable.getOrDefault(chatId, 0L);
     }
 
     public void setState(long chatId, long state) {
         stateTable.put(chatId, state);
     }
 
-    public long getQuestionId(long chatId) {
-        if (questionIdTable.containsKey(chatId))
-            return questionIdTable.get(chatId);
-        return 0;
+    public int getQuestionId(long chatId) {
+        return questionIdTable.getOrDefault(chatId, 0);
     }
 
-    public void setQuestionId(long chatId, long questionId) {
+    public void setQuestionId(long chatId, int questionId) {
         questionIdTable.put(chatId, questionId);
+    }
+
+    public int getWrongAnswersCount(long chatId) {
+        return wrongAnswersCountTable.getOrDefault(chatId, 0);
+    }
+
+    public void wrongAnswersCountIncrement(long chatId) {
+        wrongAnswersCountTable.put(chatId, 1
+                + wrongAnswersCountTable.getOrDefault(chatId, 0));
+    }
+
+    public void wrongAnswersCountReset(long chatId) {
+        wrongAnswersCountTable.put(chatId, 0);
+    }
+
+    public int getGiveUpRequestsCount(long chatId) {
+        return giveUpRequestsCountTable.getOrDefault(chatId, 0);
+    }
+
+    public void giveUpRequestsCountIncrement(long chatId) {
+        giveUpRequestsCountTable.put(chatId, 1
+                + giveUpRequestsCountTable.getOrDefault(chatId, 0));
+    }
+
+    public void giveUpRequestsCountReset(long chatId) {
+        giveUpRequestsCountTable.put(chatId, 0);
+    }
+
+    public String getUserName(long userId) {
+        return userNamesTable.getOrDefault(userId, String.format("ID %n", userId));
+    }
+
+    public void setUserName(long userId, String name) {
+        if (name == null)
+            throw new IllegalArgumentException();
+
+        userNamesTable.put(userId, name);
     }
 }

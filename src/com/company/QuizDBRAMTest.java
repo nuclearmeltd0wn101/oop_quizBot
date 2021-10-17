@@ -13,6 +13,22 @@ public class QuizDBRAMTest {
     }
 
     @Test
+    void getScoreTable_sortedByScoreDescending() {
+        var db = new QuizDBRAM();
+        for (var i = 0; i < 192; i++)
+            db.scoreIncrement(123, 456);
+        for (var i = 0; i < 15; i++)
+            db.scoreIncrement(123, 789);
+        for (var i = 0; i < 512; i++)
+            db.scoreIncrement(123, 321);
+
+        var response = db.getScoreTable(123);
+
+        for (var i = 0; i < response.length - 1; i++)
+            Assertions.assertTrue((response[i + 1]).score <= (response[i]).score);
+    }
+
+    @Test
     void scoreIncrement_keepsMultipleScorePerChat() {
         var db = new QuizDBRAM();
         for (var i = 0; i < 192; i++)
