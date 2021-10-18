@@ -44,6 +44,7 @@ public class QuizLogic implements IChatBotLogic {
             for (QuizScore item:table)
             {
                 sb.append(db.getUserName(item.userId));
+                sb.append(" | ");
                 sb.append(item.score);
                 sb.append("\n");
             }
@@ -78,8 +79,8 @@ public class QuizLogic implements IChatBotLogic {
 
             if (question.validateAnswer(event.message.toLowerCase())) {
                 db.setState(event.chatId,0);
-                db.setUserName(event.senderId,String.format("user with : %s",event.senderId));
-                db.scoreIncrement(event.chatId,event.senderId);
+                db.setUserName(event.senderId, event.senderUsername);
+                db.scoreIncrement(event.chatId, event.senderId);
                 db.giveUpRequestsCountReset(event.chatId);
                 db.wrongAnswersCountReset(event.chatId);
                 return event.toResponse(messageRightAnswer);
