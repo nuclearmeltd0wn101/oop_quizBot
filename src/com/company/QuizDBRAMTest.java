@@ -132,4 +132,97 @@ public class QuizDBRAMTest {
         Assert.assertEquals(12345, db.getQuestionId(159951));
         Assert.assertEquals(551, db.getQuestionId(132));
     }
+    @Test
+    void getWrongAnswers_noWrongAnswers()
+    {
+        var db = new QuizDBRAM();
+        Assert.assertEquals(0, db.getWrongAnswersCount(123569));
+    }
+    @Test
+    void getWrongAnswersIncrement_keepsMultipleChat()
+    {
+        var db = new QuizDBRAM();
+        for (var i = 0; i < 192; i++)
+            db.wrongAnswersCountIncrement(123);
+        for (var i = 0; i < 15; i++)
+            db.wrongAnswersCountIncrement(456);
+
+        var response1 = db.getWrongAnswersCount(123);
+        var response2 = db.getWrongAnswersCount(456);
+
+        Assert.assertTrue(response1 != 0);
+        Assert.assertTrue(response2 != 0);
+
+        boolean firstFoundAndOk = false, secondFoundAndOk = false;
+
+        if (response1 == 192)
+            firstFoundAndOk = true;
+        if (response2 == 15)
+            secondFoundAndOk = true;
+
+        Assertions.assertTrue(firstFoundAndOk);
+        Assertions.assertTrue(secondFoundAndOk);
+    }
+    @Test
+    void wrongAnswerReset_TestWork()
+    {
+        var db = new QuizDBRAM();
+        for (var i = 0; i < 192; i++)
+            db.wrongAnswersCountIncrement(123);
+        var before=db.getWrongAnswersCount(123);
+        db.wrongAnswersCountReset(123);
+        var after=db.getWrongAnswersCount(123);
+        Assert.assertTrue(before!=after&&after==0);
+    }
+    @Test
+    void getGiveUpCount_noGiveUp()
+    {
+        var db = new QuizDBRAM();
+        Assert.assertEquals(0, db.getGiveUpRequestsCount(123569));
+    }
+    @Test
+    void getGiveUpIncrement_keepsMultipleChat()
+    {
+        var db = new QuizDBRAM();
+        for (var i = 0; i < 192; i++)
+            db.giveUpRequestsCountIncrement(123);
+        for (var i = 0; i < 15; i++)
+            db.giveUpRequestsCountIncrement(456);
+
+        var response1 = db.getGiveUpRequestsCount(123);
+        var response2 = db.getGiveUpRequestsCount(456);
+        boolean firstFoundAndOk = false, secondFoundAndOk = false;
+        if (response1 == 192)
+            firstFoundAndOk = true;
+        if (response2 == 15)
+            secondFoundAndOk = true;
+
+        Assertions.assertTrue(firstFoundAndOk);
+        Assertions.assertTrue(secondFoundAndOk);
+    }
+    @Test
+    void giveUpReset_TestWork()
+    {
+        var db = new QuizDBRAM();
+        for (var i = 0; i < 192; i++)
+            db.giveUpRequestsCountIncrement(123);
+        var before=db.getGiveUpRequestsCount(123);
+        db.giveUpRequestsCountReset(123);
+        var after=db.getGiveUpRequestsCount(123);
+        Assert.assertTrue(before!=after&&after==0);
+    }
+    @Test
+    void getUsername_TestWork()
+    {
+        var db = new QuizDBRAM();
+        db.getUserName(0);
+        Assert.assertEquals(db.getUserName(0),String.format("ID %n",0));
+    }
+    @Test
+    void setUsername_TestWork()
+    {
+        var db = new QuizDBRAM();
+        db.setUserName(123,"alo");
+        Assert.assertEquals(db.getUserName(123),"alo");
+    }
 }
