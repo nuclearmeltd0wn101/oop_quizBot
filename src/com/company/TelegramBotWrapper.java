@@ -2,6 +2,7 @@ package com.company;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
+import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.request.GetMe;
 
@@ -13,6 +14,16 @@ public class TelegramBotWrapper implements IChatBotWrapper {
     public TelegramBotWrapper(IChatBotLogic botLogic, String botToken) {
         m_botLogic = botLogic;
         this.m_botToken = botToken;
+    }
+
+    private String getName(User user) {
+        if (user.username() != null)
+            return user.username();
+
+        if (user.lastName() == null)
+            return user.firstName();
+
+        return user.firstName() + " " + user.lastName();
     }
 
     public void run() {
@@ -38,7 +49,7 @@ public class TelegramBotWrapper implements IChatBotWrapper {
                 if (message != null) {
                     var senderId = source.from().id();
                     var chatId = source.chat().id();
-                    var senderUsername = source.from().username();
+                    var senderUsername = getName(source.from());
 
                     var event = new ChatBotEvent(senderId, senderUsername, message);
 
