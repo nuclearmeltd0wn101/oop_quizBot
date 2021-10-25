@@ -216,7 +216,7 @@ public class QuizDBRAMTest {
     {
         var db = new QuizDBRAM();
         db.getUserName(0);
-        Assert.assertEquals(db.getUserName(0),String.format("ID %n",0));
+        Assert.assertEquals(db.getUserName(0),String.format("ID %d",0));
     }
     @Test
     void setUsername_TestWork()
