@@ -3,8 +3,10 @@ package com.company;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.User;
+import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.request.GetMe;
+
 
 public class TelegramBotWrapper implements IChatBotWrapper {
     private TelegramBot m_bot;
@@ -61,7 +63,7 @@ public class TelegramBotWrapper implements IChatBotWrapper {
                         continue;
 
                     var request = new SendMessage(response.chatId, response.message);
-                    var sendResponse = m_bot.execute(request);
+                    var sendResponse = m_bot.execute(request.parseMode(ParseMode.Markdown));
 
                     if (!sendResponse.isOk())
                         System.out.print("Не могу ответить на сообщение :(");

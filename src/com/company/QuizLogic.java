@@ -28,13 +28,14 @@ public class QuizLogic implements IChatBotLogic {
     private static final String scoreTableEmptyMessage =  "В таблице счета пока нет записей";
     private static final String firstHintMessage = "\n\nПодсказка №1: Ответ начинается с буквы \"%s\" ";
     private static final String secondHintMessage="\nПодсказка №2: Длина ответа - %s символов";
-    private static final String giveUpMessage= "Напишите \"сдаюсь\" ещё %s раз(-а)";
+    private static final String giveUpMessage= "Напишите \"сдаюсь\" ещё %s раза";
+    private static final String giveUpMessage2= "Напишите \"сдаюсь\" ещё %s раз";
     private static final String questionResetMessage= "Вопрос снят. Следующий вопрос:\n";
     private static final String questionAlreadyExistMessage="Вопрос уже был задан, ожидаю ответ";
 
     private final ArrayList<QuizQuestion> questions;
     private final Random rand;
-    private IQuizDB db;
+    private final IQuizDB db;
 
     public QuizLogic(ArrayList<QuizQuestion> questions, IQuizDB db)
     {
@@ -95,14 +96,37 @@ public class QuizLogic implements IChatBotLogic {
             return event.toResponse(scoreTableEmptyMessage);
         System.out.println();
         var sb = new StringBuilder();
-        for (QuizScore item:table)
-        {
-            sb.append(db.getUserName(item.userId));
-            sb.append(" | ");
-            sb.append(item.score);
-            sb.append("\n");
+        var maximumScore=0;
+        var maximumName=" ";
+        for (QuizScore item:
+             table) {
+            if (item.score>maximumScore)
+            {
+                maximumScore=Math.toIntExact(item.score);
+            }
+            if (db.getUserName(item.userId).length()>maximumName.length())
+            {
+                maximumName= db.getUserName(item.userId);
+            }
         }
-        return event.toResponse(sb.toString());
+
+        for (QuizScore item:table) {
+            sb.append("\n");
+            var userName=db.getUserName(item.userId);
+            var lengthName = 60;
+            if (maximumScore + maximumName.length() > 58)
+                lengthName = 58 -maximumScore;
+            if (userName.length()+String.valueOf(item.score).length()>57)
+                sb.append(userName,0,lengthName);
+            else
+                sb.append(userName);
+            var diff=maximumName.length()-userName.length();
+            for (var a=0;a<diff+1;a++)
+                sb.append(" ");
+            sb.append("| ");
+            sb.append(item.score);
+        }
+        return event.toResponse("```"+sb+"```");
     }
 
     private void resetQuestion(ChatBotEvent event) {
@@ -128,11 +152,7 @@ public class QuizLogic implements IChatBotLogic {
         }
 
         var sb = new StringBuilder(
-                failureCount < 5
-                ? String.format(remainingAnswersCountMessageMany, wrongAnswersLimit- failureCount)
-                : failureCount <8
-                    ? String.format(remainingAnswersCountMessageFew, wrongAnswersLimit - failureCount)
-                    : String.format(remainingAnswersCountMessageLast, wrongAnswersLimit - failureCount));
+                getRemainingAnswersCountMessage(failureCount));
 
         if (failureCount >= firstHintThreshold)
             sb.append(String.format(firstHintMessage,
@@ -146,13 +166,22 @@ public class QuizLogic implements IChatBotLogic {
         return event.toResponse(sb.toString());
     }
 
+    private String getRemainingAnswersCountMessage(int failureCount) {
+        if (failureCount < 5)
+            return String.format(remainingAnswersCountMessageMany, wrongAnswersLimit- failureCount);
+        else if (failureCount <8)
+            return String.format(remainingAnswersCountMessageFew, wrongAnswersLimit - failureCount);
+        else
+            return String.format(remainingAnswersCountMessageLast, wrongAnswersLimit - failureCount);
+    }
+
     private ChatBotResponse processGiveUpRequest(ChatBotEvent event) {
         var giveUpCount= db.getGiveUpRequestsCount(event.chatId);
 
         var response = "";
         if (giveUpCount < giveUpCountRequired ) {
             db.giveUpRequestsCountIncrement(event.chatId);
-            response = String.format(giveUpMessage,
+            response = String.format(giveUpCount==1?giveUpMessage2:giveUpMessage,
                     giveUpCountRequired - giveUpCount);
         }
         else

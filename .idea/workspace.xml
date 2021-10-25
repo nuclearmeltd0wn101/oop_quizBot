@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AnalysisUIOptions">
+    <option name="SCOPE_TYPE" value="3" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="715e0166-1601-40c5-a989-f0c8934d7171" name="Changes" comment="" />
+    <list default="true" id="715e0166-1601-40c5-a989-f0c8934d7171" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/junit.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/QuizBot.iml" beforeDir="false" afterPath="$PROJECT_DIR$/QuizBot.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/com/company/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/company/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/com/company/QuizLogic.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/company/QuizLogic.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/com/company/TelegramBotWrapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/company/TelegramBotWrapper.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -39,17 +49,19 @@
     <property name="Repository.Attach.Sources" value="false" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$USER_HOME$/git" />
-    <property name="project.structure.last.edited" value="Global Libraries" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="project.structure.last.edited" value="Libraries" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
+    <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
     <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
   </component>
-  <component name="RunManager" selected="JUnit.QuizLogicTest">
+  <component name="RunManager" selected="Application.quizbot">
     <configuration name="quizbot" type="Application" factoryName="Application">
       <envs>
-        <env name="tgBotToken" value="" />
+        <env name="tgBotToken" value="2017666175:AAE_lYPAoC65dYh5mJIOvxBi4m-LA7iggkg" />
       </envs>
       <option name="MAIN_CLASS_NAME" value="com.company.Main" />
       <module name="QuizBot" />
@@ -97,8 +109,8 @@
     </configuration>
     <list>
       <item itemvalue="Application.quizbot" />
-      <item itemvalue="Maven.project" />
       <item itemvalue="JUnit.QuizLogicTest" />
+      <item itemvalue="Maven.project" />
     </list>
     <recent_temporary>
       <list>
@@ -122,9 +134,28 @@
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
   <component name="VcsManagerConfiguration">
     <ignored-roots>
       <path value="$PROJECT_DIR$/quiz" />
     </ignored-roots>
+  </component>
+  <component name="XDebuggerManager">
+    <watches-manager>
+      <configuration name="Application">
+        <watch expression="response.message" language="JAVA" />
+      </configuration>
+    </watches-manager>
   </component>
 </project>
