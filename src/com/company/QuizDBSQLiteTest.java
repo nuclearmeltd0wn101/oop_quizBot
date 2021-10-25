@@ -226,4 +226,27 @@ public class QuizDBSQLiteTest {
         db.setUserName(123,"alo");
         Assertions.assertEquals(db.getUserName(123),"alo");
     }
+
+    @Test
+    void setUsername_singleQuoteWorks() {
+        var db = new QuizDBSQLite(null);
+        var name = "le 'soleil";
+
+        db.setUserName(228, name);
+        Assertions.assertEquals(name, db.getUserName(228));
+    }
+
+    @Test
+    void setUsername_noInjectionVulnerable() {
+        var db = new QuizDBSQLite(null);
+        var name = "1”/**/UNION/**/SELECT/**/\n" +
+                "password/**/FROM/**/USERS/**/LIMIT/**/1";
+
+        db.setUserName(1337, name);
+        Assertions.assertEquals(name, db.getUserName(1337));
+
+        name = "\\";
+        db.setUserName(121, name);
+        Assertions.assertEquals(name, db.getUserName(121));
+    }
 }
