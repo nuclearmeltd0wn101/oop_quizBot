@@ -7,6 +7,7 @@ import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.GetMe;
 import com.pengrad.telegrambot.request.SendMessage;
 
+
 public class TelegramBotWrapper implements IChatBotWrapper {
     private TelegramBot m_bot;
     private final IChatBotLogic m_botLogic;

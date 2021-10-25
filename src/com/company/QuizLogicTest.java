@@ -13,9 +13,10 @@ class QuizLogicTest {
     String testAnswer = "testanswer";
 
     public QuizLogicTest() {
+        var db = new QuizDBRAM();
         questions = new ArrayList<>();
         questions.add(new QuizQuestion(0, testQuestion, testAnswer));
-        botLogic = new QuizLogic(questions);
+        botLogic = new QuizLogic(questions, db);
     }
 
     @Test
