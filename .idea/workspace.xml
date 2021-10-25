@@ -6,7 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="715e0166-1601-40c5-a989-f0c8934d7171" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/company/QuizLogic.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/company/QuizLogic.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/com/company/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/company/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,6 +58,7 @@
     <configuration name="quizbot" type="Application" factoryName="Application">
       <envs>
         <env name="tgBotToken" value="" />
+        <env name="dbPath" value="db.sqlite" />
       </envs>
       <option name="MAIN_CLASS_NAME" value="com.company.Main" />
       <module name="QuizBot" />
