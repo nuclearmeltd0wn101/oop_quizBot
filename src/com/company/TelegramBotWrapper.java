@@ -4,8 +4,8 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.model.request.ParseMode;
-import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.request.GetMe;
+import com.pengrad.telegrambot.request.SendMessage;
 
 
 public class TelegramBotWrapper implements IChatBotWrapper {

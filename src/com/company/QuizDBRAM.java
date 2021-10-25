@@ -5,12 +5,12 @@ import java.util.Arrays;
 import java.util.Hashtable;
 
 public class QuizDBRAM implements IQuizDB {
-    private Hashtable<Long, Hashtable<Long, Long>> scoreTable;
-    private Hashtable<Long, Long> stateTable;
-    private Hashtable<Long, Integer> questionIdTable;
-    private Hashtable<Long, Integer> wrongAnswersCountTable;
-    private Hashtable<Long, Integer> giveUpRequestsCountTable;
-    private Hashtable<Long, String> userNamesTable;
+    private final Hashtable<Long, Hashtable<Long, Long>> scoreTable;
+    private final Hashtable<Long, Long> stateTable;
+    private final Hashtable<Long, Integer> questionIdTable;
+    private final Hashtable<Long, Integer> wrongAnswersCountTable;
+    private final Hashtable<Long, Integer> giveUpRequestsCountTable;
+    private final Hashtable<Long, String> userNamesTable;
 
     public QuizDBRAM()
     {
@@ -87,7 +87,7 @@ public class QuizDBRAM implements IQuizDB {
     }
 
     public String getUserName(long userId) {
-        return userNamesTable.getOrDefault(userId, String.format("ID %n", userId));
+        return userNamesTable.getOrDefault(userId, String.format("ID %d", userId));
     }
 
     public void setUserName(long userId, String name) {
