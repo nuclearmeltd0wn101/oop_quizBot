@@ -148,7 +148,7 @@ public class QuizLogic implements IChatBotLogic {
         if (failureCount == wrongAnswersLimit)
         {
             resetQuestion(event);
-            event.toResponse(wrongAnswersLimitMessage);
+            return event.toResponse(wrongAnswersLimitMessage);
         }
 
         var sb = new StringBuilder(
