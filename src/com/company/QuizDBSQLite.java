@@ -263,7 +263,7 @@ public class QuizDBSQLite implements IQuizDB {
     }
 
     public void setUserName(long userId, String name) {
-        var escapedName = name.replace("'", "\\'");
+        var escapedName = name.replace("'", "''");
         executeUpdates(new String[] {
                 String.format(setUserNameInitQuery, escapedName, userId),
                 String.format(setUserNameUpdateQuery, escapedName, userId)
