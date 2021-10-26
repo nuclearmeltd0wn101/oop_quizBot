@@ -11,7 +11,8 @@ public class QuizLogic implements IChatBotLogic {
     private static final int secondHintThreshold = 5;
 
     private static final String greetMessagePM
-            = "Привет, я - Викторина-бот!\nНапиши \"вопрос\" и я задам тебе вопрос";
+            = "Привет, я - Викторина-бот!\nНапиши \"вопрос\" и я задам тебе вопрос"
+            + "\nНапиши /score для получения таблицы счета";
     private static final String remainingAnswersCountMessageMany
             = "Вы не угадали. Осталось %s попыток";
     private static final String remainingAnswersCountMessageFew
@@ -19,7 +20,8 @@ public class QuizLogic implements IChatBotLogic {
     private static final String remainingAnswersCountMessageLast
             = "Вы не угадали. Осталась %s попытка";
     private static final String wrongAnswersLimitMessage
-            = "Слишком много неправильных попыток. Напишите \"вопрос\", чтобы получить новый вопрос.";
+            = "Слишком много неправильных попыток. Напишите \"вопрос\", чтобы получить новый вопрос."
+            + "\nНапиши /score для получения таблицы счета";
     private static final String greetMessageChat
             = "Привет, я - Викторина-бот!\nНапиши @Quiz_bot_bot, затем любое сообщение и я задам тебе вопрос";
     private static final String messageHelpHint
