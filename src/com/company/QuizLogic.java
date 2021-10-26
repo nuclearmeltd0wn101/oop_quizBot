@@ -46,6 +46,8 @@ public class QuizLogic implements IChatBotLogic {
         this.db = db;
     }
 
+    //todo: если ответ Гольф, то зайдет
+
     public ChatBotResponse handler(ChatBotEvent event) {
         if (!event.isPrivateChat && !event.isMentioned) // ignore public chat w\o mention
             return null;
@@ -92,7 +94,7 @@ public class QuizLogic implements IChatBotLogic {
         return event.toResponse(messageHelpHint);
     }
 
-    private ChatBotResponse displayScoreTable(ChatBotEvent event) {
+    private ChatBotResponse displayScoreTable(ChatBotEvent event) { // todo это должно быть не в QuizLogic
         var table= db.getScoreTable(event.chatId);
         if (db.getScoreTable(event.chatId) == null)
             return event.toResponse(scoreTableEmptyMessage);

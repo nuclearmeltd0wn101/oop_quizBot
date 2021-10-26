@@ -6,6 +6,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class QuizDBSQLite implements IQuizDB {
+
+    //todo: вынести специфичные вещи предметной области от инфраструктурных инициализации бд
     private static final String initStatesTableQuery
             = "create table if not exists states (chatId integer primary key, state integer)";
     private static final String initScoreTableQuery
@@ -140,7 +142,7 @@ public class QuizDBSQLite implements IQuizDB {
         return arrayResult;
     }
 
-    public long getState(long chatId) {
+    public long getState(long chatId) { // todo: вынести в общий метод и заиспользовать везде
         var result = 0L;
         try {
             var statement = connection.createStatement();

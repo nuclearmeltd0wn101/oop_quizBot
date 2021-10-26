@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 
 public class QuizDBSQLiteTest {
 
+    // Mock
+
     @Test
     void getScoreTable_NoChatIdRecord_returnsNull() {
         var db = new QuizDBSQLite(null);
