@@ -25,6 +25,7 @@ public class QuizQuestion {
     }
 
     public boolean validateAnswer(String answerCandidate) {
-        return answerCandidate.toLowerCase(Locale.ROOT).contains(answer.toLowerCase(Locale.ROOT));
+        return answerCandidate.toLowerCase(Locale.ROOT)
+                .equals(answer.toLowerCase(Locale.ROOT));
     }
 }

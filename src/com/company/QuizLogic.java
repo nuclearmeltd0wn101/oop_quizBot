@@ -11,8 +11,10 @@ public class QuizLogic implements IChatBotLogic {
     private static final int secondHintThreshold = 5;
 
     private static final String greetMessagePM
-            = "Привет, я - Викторина-бот!\nНапиши \"вопрос\" и я задам тебе вопрос"
-            + "\nНапиши /score для получения таблицы счета";
+            = """
+            Привет, я - Викторина-бот!
+            Напиши "вопрос" и я задам тебе вопрос
+            Напиши /score для получения таблицы счета""";
     private static final String remainingAnswersCountMessageMany
             = "Вы не угадали. Осталось %s попыток";
     private static final String remainingAnswersCountMessageFew
@@ -46,14 +48,28 @@ public class QuizLogic implements IChatBotLogic {
         this.db = db;
     }
 
-    //todo: если ответ Гольф, то зайдет
+    public void setRemindPolicy(long remindDelaySeconds, int maxRemindAttempts) {
+        db.setRemindPolicy(remindDelaySeconds, maxRemindAttempts);
+    }
 
-    public ChatBotResponse handler(ChatBotEvent event) {
-        if (!event.isPrivateChat && !event.isMentioned) // ignore public chat w\o mention
+    private ChatBotResponse selfInducedHandler() {
+        var inactiveInfo = db.getInactiveChat();
+        System.out.println(inactiveInfo);
+        if (inactiveInfo == null)
             return null;
 
-        var state = db.getState(event.chatId);
+        // todo бахнуть более информативное (и, желательно рофельное) напоминание (бахни массив всратых цитат
+        //  душного артема из закрепов конфы и кидай их в начало сообщения, в конце же просто напоминай юзеру,
+        //  что мб ему стоит снова поиграть с ботом (желательно тоже с закосом под душного артема, и ваще тексты
+        //  сообщений лучше переделать так чтобы это был не викторина-бот а "Викторина Душных Вопросов от ТОП-1 КНа")
+        var response = new ChatBotResponse(inactiveInfo.chatId, "kek");
 
+        return inactiveInfo.isAnyMore
+                ? response.SelfInducedNotOverYet()
+                : response;
+    }
+
+    private ChatBotResponse quizHandler(ChatBotEvent event, long state) {
         if (event.message.contains("/score"))
         {
             return displayScoreTable(event);
@@ -62,8 +78,8 @@ public class QuizLogic implements IChatBotLogic {
         if (event.message.contains("/help"))
             return event.toResponse(
                     !event.isPrivateChat
-                        ? greetMessageChat
-                        : greetMessagePM);
+                            ? greetMessageChat
+                            : greetMessagePM);
 
         if (event.message.toLowerCase().contains("вопрос"))
         {
@@ -103,7 +119,7 @@ public class QuizLogic implements IChatBotLogic {
         var maximumScore=0;
         var maximumName=" ";
         for (QuizScore item:
-             table) {
+                table) {
             if (item.score>maximumScore)
             {
                 maximumScore=Math.toIntExact(item.score);
@@ -119,18 +135,30 @@ public class QuizLogic implements IChatBotLogic {
             var userName=db.getUserName(item.userId);
             var lengthName = 60;
             if (maximumScore + maximumName.length() > 58)
-                lengthName = 58 -maximumScore;
-            if (userName.length()+String.valueOf(item.score).length()>57)
+                lengthName = 58 - maximumScore;
+            if (userName.length() + String.valueOf(item.score).length()>57)
                 sb.append(userName,0,lengthName);
             else
                 sb.append(userName);
-            var diff=maximumName.length()-userName.length();
-            for (var a=0;a<diff+1;a++)
-                sb.append(" ");
+            var diff = maximumName.length() - userName.length();
+            sb.append(" ".repeat(Math.max(0, diff + 1)));
             sb.append("| ");
             sb.append(item.score);
         }
         return event.toResponse("```"+sb+"```");
+    }
+
+    public ChatBotResponse handler(ChatBotEvent event) {
+        if (event.isSelfInduced)
+            return selfInducedHandler();
+
+        if (!event.isPrivateChat && !event.isMentioned) // ignore public chat w\o mention
+            return null;
+
+        db.updateChatLastActiveTimestamp(event.chatId);
+
+        var state = db.getState(event.chatId);
+        return quizHandler(event, state);
     }
 
     private void resetQuestion(ChatBotEvent event) {

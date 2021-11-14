@@ -20,4 +20,8 @@ public interface IQuizDB {
 
     public String getUserName(long userId);
     public void setUserName(long userId, String name);
+
+    public void setRemindPolicy(long remindDelaySeconds, int maxRemindAttempts);
+    public InactiveChatInfo getInactiveChat();
+    public void updateChatLastActiveTimestamp(long chatId);
 }

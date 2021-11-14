@@ -2,73 +2,92 @@ package com.company;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.function.Function;
 
 public class QuizDBSQLite implements IQuizDB {
-
-    //todo: вынести специфичные вещи предметной области от инфраструктурных инициализации бд
     private static final String initStatesTableQuery
-            = "create table if not exists states (chatId integer primary key, state integer)";
+            = "CREATE table if NOT EXISTS states (chatId INTEGER PRIMARY KEY, state INTEGER)";
     private static final String initScoreTableQuery
-            = "create table if not exists score (chatId integer," +
-            "userId integer, score integer, primary key (chatId, userId))";
+            = "CREATE table if NOT EXISTS score (chatId INTEGER,"
+                + "userId INTEGER, score INTEGER, PRIMARY KEY (chatId, userId))";
     private static final String initQuestionIdTableQuery
-            = "create table if not exists questionIds (chatId integer primary key, questionId integer)";
+            = "CREATE table if NOT EXISTS questionIds (chatId INTEGER PRIMARY KEY, questionId INTEGER)";
     private static final String initWrongAnswersCountTableQuery
-            = "create table if not exists wrongAnswers (chatId integer primary key, count integer)";
+            = "CREATE table if NOT EXISTS wrongAnswers (chatId INTEGER PRIMARY KEY, count INTEGER)";
     private static final String initGiveUpRequestsCountTableQuery
-            = "create table if not exists giveUpRequests (chatId integer primary key, count integer)";
+            = "CREATE table if NOT EXISTS giveUpRequests (chatId INTEGER PRIMARY KEY, count INTEGER)";
     private static final String initUserNamesTableQuery
-            = "create table if not exists userNames (userId integer primary key, name text)";
+            = "CREATE table if NOT EXISTS userNames (userId INTEGER PRIMARY KEY, name TEXT)";
+    private static final String initChatsInactiveTableQuery
+            = "CREATE table if NOT EXISTS chatsInactive (chatId INTEGER PRIMARY KEY, "
+                + "lastActiveTimestampUnix INTEGER, remindAttemptsCount)";
 
     private static final String scoreInitQuery
             = "insert or ignore into score(chatId, userId, score) values (%d, %d, 0)";
     private static final String scoreIncrementQuery
-            = "update score set score = score + 1 where (chatId = %d) and (userId = %d)";
+            = "update score SET score = score + 1 WHERE (chatId = %d) and (userId = %d)";
     private static final String getScoreTableQuery
-            = "select userId, score from score where chatId = %d order by score desc";
+            = "SELECT userId, score FROM score WHERE chatId = %d ORDER BY score DESC";
 
     private static final String getStateQuery
-            = "select state from states where chatId = %d";
+            = "SELECT state FROM states WHERE chatId = %d";
     private static final String setStateInitQuery
             = "insert or ignore into states(state, chatId) values (%d, %d)";
     private static final String setStateUpdateQuery
-            = "update states set state = %d where chatId = %d";
+            = "update states SET state = %d WHERE chatId = %d";
 
     private static final String getQuestionIdQuery
-            = "select questionId from questionIds where chatId = %d";
+            = "SELECT questionId FROM questionIds WHERE chatId = %d";
     private static final String setQuestionIdInitQuery
             = "insert or ignore into questionIds(questionId, chatId) values (%d, %d)";
     private static final String setQuestionIdUpdateQuery
-            = "update questionIds set questionId = %d where chatId = %d";
+            = "update questionIds SET questionId = %d WHERE chatId = %d";
 
     private static final String getWrongAnswersCountQuery
-            = "select count from wrongAnswers where chatId = %d";
+            = "SELECT count FROM wrongAnswers WHERE chatId = %d";
     private static final String setWrongAnswersCountInitQuery
             = "insert or ignore into wrongAnswers(count, chatId) values (0, %d)";
     private static final String setWrongAnswersCountIncrementQuery
-            = "update wrongAnswers set count = count + 1 where chatId = %d";
+            = "update wrongAnswers SET count = count + 1 WHERE chatId = %d";
     private static final String setWrongAnswersCountResetQuery
-            = "update wrongAnswers set count = 0 where chatId = %d";
+            = "update wrongAnswers SET count = 0 WHERE chatId = %d";
 
     private static final String getGiveUpRequestsCountQuery
-            = "select count from giveUpRequests where chatId = %d";
+            = "SELECT count FROM giveUpRequests WHERE chatId = %d";
     private static final String setGiveUpRequestsCountInitQuery
             = "insert or ignore into giveUpRequests(count, chatId) values (0, %d)";
     private static final String setGiveUpRequestsCountIncrementQuery
-            = "update giveUpRequests set count = count + 1 where chatId = %d";
+            = "update giveUpRequests SET count = count + 1 WHERE chatId = %d";
     private static final String setGiveUpRequestsCountResetQuery
-            = "update giveUpRequests set count = 0 where chatId = %d";
+            = "update giveUpRequests SET count = 0 WHERE chatId = %d";
 
     private static final String getUsernameQuery
-            = "select name from userNames where userId = %d";
+            = "SELECT name FROM userNames WHERE userId = %d";
     private static final String setUserNameInitQuery
             = "insert or ignore into userNames(name, userId) values ('%s', %d)";
     private static final String setUserNameUpdateQuery
-            = "update userNames set name = '%s' where userId = %d";
+            = "update userNames SET name = '%s' WHERE userId = %d";
+
+    private static final String getInactiveUserQuery = "SELECT chatId FROM chatsInactive WHERE "
+            + "(abs(strftime('%%s', 'now') - lastActiveTimestampUnix) >= %d)"
+            + " AND (remindAttemptsCount < %d)";
+    private static final String registerInactiveChatTimestampQuery = "INSERT OR IGNORE INTO "
+            + "chatsInactive(chatId, lastActiveTimestampUnix, remindAttemptsCount) "
+            + "VALUES (%d, strftime('%%s', 'now'), 0)";
+    private static final String incrementInactiveChatRemindAttemptsQuery = "UPDATE chatsInactive"
+            + " SET remindAttemptsCount = remindAttemptsCount + 1 WHERE chatId = %s";
+    private static final String updateInactiveChatTimestampQuery = "UPDATE chatsInactive"
+            + " SET lastActiveTimestampUnix = strftime('%%s', 'now') WHERE chatId = %d";
+    private static final String cleanUpInactiveChatsTableQuery = "DELETE FROM chatsInactive"
+            + " WHERE remindAttemptsCount >= %d";
 
     private final Connection connection;
+
+    private int m_maxRemindAttempts = 5;
+    private long m_remindDelaySeconds = 3 * 24 * 60 * 60;
 
     public QuizDBSQLite(String dbFilePath)
     {
@@ -80,7 +99,7 @@ public class QuizDBSQLite implements IQuizDB {
         try {
             connection = DriverManager.getConnection("jdbc:sqlite:" + dbFilePath);
         } catch (SQLException e) {
-            System.err.println(e);
+            System.err.println(e.getMessage());
         }
         this.connection = connection;
         if (connection == null)
@@ -92,9 +111,9 @@ public class QuizDBSQLite implements IQuizDB {
                 initQuestionIdTableQuery,
                 initWrongAnswersCountTableQuery,
                 initGiveUpRequestsCountTableQuery,
-                initUserNamesTableQuery
+                initUserNamesTableQuery,
+                initChatsInactiveTableQuery
         });
-
     }
 
     private void executeUpdates(String[] updates) {
@@ -109,6 +128,80 @@ public class QuizDBSQLite implements IQuizDB {
         }
     }
 
+    private <T> ArrayList<T> queryMap(Function<ResultSet, T> func, String query)
+    {
+        var result = new ArrayList<T>();
+        try {
+            var statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+            var response = statement.executeQuery(query);
+            while (response.next())
+            {
+                var item = func.apply(response);
+                if (item == null)
+                    throw new SQLException("unable to process " + query);
+                result.add(item);
+            }
+            return result;
+        }
+        catch (SQLException e) {
+            System.err.println(e.getMessage());
+            return null;
+        }
+    }
+
+    public long getLastLong(String query, String columnLabel, long defaultValue) {
+        var data = queryMap(response -> {
+            try { // ResultSet.get{typeHere} causes repetitions anyway
+                return response.getLong(columnLabel);
+            } catch (SQLException e) { return null; }
+        }, query);
+
+        var result = defaultValue;
+        if (data == null)
+            return result;
+
+        for (var item : data)
+            result = item;
+
+        return result;
+    }
+
+    public int getLastInt(String query, String columnLabel, int defaultValue) {
+        var data = queryMap(response -> {
+            try { // ResultSet.get{typeHere} causes repetitions anyway
+                return response.getInt(columnLabel);
+            } catch (SQLException e) { return null; }
+        }, query);
+
+        var result = defaultValue;
+        if (data == null)
+            return result;
+
+        for (var item : data)
+            result = item;
+
+        return result;
+    }
+
+    public String getLastString(String query, String columnLabel, String defaultValue) {
+        var data = queryMap(response -> {
+            try { // ResultSet.get{typeHere} causes repetitions anyway
+                return response.getString(columnLabel);
+            } catch (SQLException e) { return null; }
+        }, query);
+
+        var result = defaultValue;
+        if (data == null)
+            return result;
+
+        for (var item : data)
+            result = item;
+
+        return result;
+    }
+
+
     public void scoreIncrement(long chatId, long userId) {
         executeUpdates(new String[] {
             String.format(scoreInitQuery, chatId, userId),
@@ -117,24 +210,15 @@ public class QuizDBSQLite implements IQuizDB {
     }
 
     public QuizScore[] getScoreTable(long chatId) {
-        var result = new ArrayList<QuizScore>();
-        try {
-            var statement = connection.createStatement();
-            statement.setQueryTimeout(30);
-            var response = statement.executeQuery(
-                    String.format(getScoreTableQuery, chatId));
-            while (response.next())
-            {
+        var result = queryMap(response -> {
+            try {
                 var userId = response.getInt("userId");
                 var score = response.getInt("score");
-                result.add(new QuizScore(chatId, userId, score));
-            }
-        }
-        catch (SQLException e) {
-            System.err.println(e.getMessage());
-        }
+                return new QuizScore(chatId, userId, score);
+            } catch (SQLException e) { return null; }
+        }, String.format(getScoreTableQuery, chatId));
 
-        if (result.size() == 0)
+        if (result == null || result.size() == 0)
             return null;
 
         var arrayResult = new QuizScore[result.size()];
@@ -142,20 +226,9 @@ public class QuizDBSQLite implements IQuizDB {
         return arrayResult;
     }
 
-    public long getState(long chatId) { // todo: вынести в общий метод и заиспользовать везде
-        var result = 0L;
-        try {
-            var statement = connection.createStatement();
-            statement.setQueryTimeout(30);
-            var response = statement.executeQuery(
-                    String.format(getStateQuery, chatId));
-            while (response.next()) {
-                result = response.getInt("state");
-            }
-        } catch (SQLException e) {
-            System.err.println(e.getMessage());
-        }
-        return result;
+    public long getState(long chatId) {
+        return getLastLong(String.format(getStateQuery, chatId),
+                "state", 0L);
     }
 
     public void setState(long chatId, long state) {
@@ -166,19 +239,8 @@ public class QuizDBSQLite implements IQuizDB {
     }
 
     public int getQuestionId(long chatId) {
-        var result = 0;
-        try {
-            var statement = connection.createStatement();
-            statement.setQueryTimeout(30);
-            var response = statement.executeQuery(
-                    String.format(getQuestionIdQuery, chatId));
-            while (response.next()) {
-                result = response.getInt("questionId");
-            }
-        } catch (SQLException e) {
-            System.err.println(e.getMessage());
-        }
-        return result;
+        return getLastInt(String.format(getQuestionIdQuery, chatId),
+                "questionId", 0);
     }
 
     public void setQuestionId(long chatId, int questionId) {
@@ -189,19 +251,8 @@ public class QuizDBSQLite implements IQuizDB {
     }
 
     public int getWrongAnswersCount(long chatId) {
-        var result = 0;
-        try {
-            var statement = connection.createStatement();
-            statement.setQueryTimeout(30);
-            var response = statement.executeQuery(
-                    String.format(getWrongAnswersCountQuery, chatId));
-            while (response.next()) {
-                result = response.getInt("count");
-            }
-        } catch (SQLException e) {
-            System.err.println(e.getMessage());
-        }
-        return result;
+        return getLastInt(String.format(getWrongAnswersCountQuery, chatId),
+                "count", 0);
     }
 
     public void wrongAnswersCountIncrement(long chatId) {
@@ -219,19 +270,8 @@ public class QuizDBSQLite implements IQuizDB {
     }
 
     public int getGiveUpRequestsCount(long chatId) {
-        var result = 0;
-        try {
-            var statement = connection.createStatement();
-            statement.setQueryTimeout(30);
-            var response = statement.executeQuery(
-                    String.format(getGiveUpRequestsCountQuery, chatId));
-            while (response.next()) {
-                result = response.getInt("count");
-            }
-        } catch (SQLException e) {
-            System.err.println(e.getMessage());
-        }
-        return result;
+        return getLastInt(String.format(getGiveUpRequestsCountQuery, chatId),
+                "count", 0);
     }
 
     public void giveUpRequestsCountIncrement(long chatId) {
@@ -249,19 +289,8 @@ public class QuizDBSQLite implements IQuizDB {
     }
 
     public String getUserName(long userId) {
-        var result = String.format("ID %d", userId);
-        try {
-            var statement = connection.createStatement();
-            statement.setQueryTimeout(30);
-            var response = statement.executeQuery(
-                    String.format(getUsernameQuery, userId));
-            while (response.next()) {
-                result = response.getString("name");
-            }
-        } catch (SQLException e) {
-            System.err.println(e.getMessage());
-        }
-        return result;
+        return getLastString(String.format(getUsernameQuery, userId),
+                "name", String.format("ID %d", userId));
     }
 
     public void setUserName(long userId, String name) {
@@ -269,6 +298,42 @@ public class QuizDBSQLite implements IQuizDB {
         executeUpdates(new String[] {
                 String.format(setUserNameInitQuery, escapedName, userId),
                 String.format(setUserNameUpdateQuery, escapedName, userId)
+        });
+    }
+
+    public void setRemindPolicy(long remindDelaySeconds, int maxRemindAttempts) {
+        m_remindDelaySeconds = remindDelaySeconds;
+        m_maxRemindAttempts = maxRemindAttempts;
+    }
+
+    public InactiveChatInfo getInactiveChat() {
+        var resultBoxed = queryMap(response -> {
+                    try {
+                        return new InactiveChatInfo(
+                                response.getLong("chatId"),
+                                response.next()
+                        );
+                    } catch (SQLException e) { return null; }
+                }, String.format(getInactiveUserQuery, m_remindDelaySeconds, m_maxRemindAttempts));
+
+        if (resultBoxed == null || resultBoxed.size() < 1)
+            return null;
+
+        executeUpdates(new String[] {
+                // increment count assuming this method is called for remind formation
+                String.format(incrementInactiveChatRemindAttemptsQuery, resultBoxed.get(0).chatId),
+                // and also update timestamp in order to reset delay
+                String.format(updateInactiveChatTimestampQuery, resultBoxed.get(0).chatId),
+                // and clean up chat records with exceeded remind count limit
+                String.format(cleanUpInactiveChatsTableQuery, m_maxRemindAttempts)
+        });
+        return resultBoxed.get(0);
+    }
+
+    public void updateChatLastActiveTimestamp(long chatId) {
+        executeUpdates(new String[] { // increment count assuming this method is called for remind formation
+                String.format(registerInactiveChatTimestampQuery, chatId),
+                String.format(updateInactiveChatTimestampQuery, chatId)
         });
     }
 }

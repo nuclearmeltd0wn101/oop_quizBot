@@ -96,4 +96,17 @@ public class QuizDBRAM implements IQuizDB {
 
         userNamesTable.put(userId, name);
     }
+
+    // I dunno should I actually implement all what I do into this dummy db implementation
+    public void setRemindPolicy(long remindDelaySeconds, int maxRemindAttempts) {
+
+    }
+
+    public InactiveChatInfo getInactiveChat() {
+        return null;
+    }
+
+    public void updateChatLastActiveTimestamp(long userId) {
+
+    }
 }

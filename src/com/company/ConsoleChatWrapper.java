@@ -30,4 +30,8 @@ public class ConsoleChatWrapper implements IChatBotWrapper {
     public void stop() {
         isRunning = false;
     }
+
+    public void callSelfInduced() {
+        // it has no sense in CLI
+    }
 }
