@@ -26,50 +26,50 @@ public class QuizDBSQLite implements IQuizDB {
                 + "lastActiveTimestampUnix INTEGER, remindAttemptsCount)";
 
     private static final String scoreInitQuery
-            = "insert or ignore into score(chatId, userId, score) values (%d, %d, 0)";
+            = "INSERT OR IGNORE into score(chatId, userId, score) values (%d, %d, 0)";
     private static final String scoreIncrementQuery
-            = "update score SET score = score + 1 WHERE (chatId = %d) and (userId = %d)";
+            = "UPDATE score SET score = score + 1 WHERE (chatId = %d) and (userId = %d)";
     private static final String getScoreTableQuery
             = "SELECT userId, score FROM score WHERE chatId = %d ORDER BY score DESC";
 
     private static final String getStateQuery
             = "SELECT state FROM states WHERE chatId = %d";
     private static final String setStateInitQuery
-            = "insert or ignore into states(state, chatId) values (%d, %d)";
+            = "INSERT OR IGNORE into states(state, chatId) values (%d, %d)";
     private static final String setStateUpdateQuery
-            = "update states SET state = %d WHERE chatId = %d";
+            = "UPDATE states SET state = %d WHERE chatId = %d";
 
     private static final String getQuestionIdQuery
             = "SELECT questionId FROM questionIds WHERE chatId = %d";
     private static final String setQuestionIdInitQuery
-            = "insert or ignore into questionIds(questionId, chatId) values (%d, %d)";
+            = "INSERT OR IGNORE into questionIds(questionId, chatId) values (%d, %d)";
     private static final String setQuestionIdUpdateQuery
-            = "update questionIds SET questionId = %d WHERE chatId = %d";
+            = "UPDATE questionIds SET questionId = %d WHERE chatId = %d";
 
     private static final String getWrongAnswersCountQuery
             = "SELECT count FROM wrongAnswers WHERE chatId = %d";
     private static final String setWrongAnswersCountInitQuery
-            = "insert or ignore into wrongAnswers(count, chatId) values (0, %d)";
+            = "INSERT OR IGNORE into wrongAnswers(count, chatId) values (0, %d)";
     private static final String setWrongAnswersCountIncrementQuery
-            = "update wrongAnswers SET count = count + 1 WHERE chatId = %d";
+            = "UPDATE wrongAnswers SET count = count + 1 WHERE chatId = %d";
     private static final String setWrongAnswersCountResetQuery
-            = "update wrongAnswers SET count = 0 WHERE chatId = %d";
+            = "UPDATE wrongAnswers SET count = 0 WHERE chatId = %d";
 
     private static final String getGiveUpRequestsCountQuery
             = "SELECT count FROM giveUpRequests WHERE chatId = %d";
     private static final String setGiveUpRequestsCountInitQuery
-            = "insert or ignore into giveUpRequests(count, chatId) values (0, %d)";
+            = "INSERT OR IGNORE into giveUpRequests(count, chatId) values (0, %d)";
     private static final String setGiveUpRequestsCountIncrementQuery
-            = "update giveUpRequests SET count = count + 1 WHERE chatId = %d";
+            = "UPDATE giveUpRequests SET count = count + 1 WHERE chatId = %d";
     private static final String setGiveUpRequestsCountResetQuery
-            = "update giveUpRequests SET count = 0 WHERE chatId = %d";
+            = "UPDATE giveUpRequests SET count = 0 WHERE chatId = %d";
 
     private static final String getUsernameQuery
             = "SELECT name FROM userNames WHERE userId = %d";
     private static final String setUserNameInitQuery
-            = "insert or ignore into userNames(name, userId) values ('%s', %d)";
+            = "INSERT OR IGNORE into userNames(name, userId) values ('%s', %d)";
     private static final String setUserNameUpdateQuery
-            = "update userNames SET name = '%s' WHERE userId = %d";
+            = "UPDATE userNames SET name = '%s' WHERE userId = %d";
 
     private static final String getInactiveUserQuery = "SELECT chatId FROM chatsInactive WHERE "
             + "(abs(strftime('%%s', 'now') - lastActiveTimestampUnix) >= %d)"
@@ -322,7 +322,7 @@ public class QuizDBSQLite implements IQuizDB {
         executeUpdates(new String[] {
                 // increment count assuming this method is called for remind formation
                 String.format(incrementInactiveChatRemindAttemptsQuery, resultBoxed.get(0).chatId),
-                // and also update timestamp in order to reset delay
+                // and also UPDATE timestamp in order to reset delay
                 String.format(updateInactiveChatTimestampQuery, resultBoxed.get(0).chatId),
                 // and clean up chat records with exceeded remind count limit
                 String.format(cleanUpInactiveChatsTableQuery, m_maxRemindAttempts)
