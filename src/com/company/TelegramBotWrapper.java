@@ -4,9 +4,12 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.User;
+import com.pengrad.telegrambot.model.request.KeyboardButton;
 import com.pengrad.telegrambot.model.request.ParseMode;
+import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
 import com.pengrad.telegrambot.request.GetMe;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.request.SendSticker;
 import com.pengrad.telegrambot.response.GetMeResponse;
 
 import java.util.List;
@@ -45,8 +48,17 @@ public class TelegramBotWrapper implements IChatBotWrapper {
             return;
 
         var request = new SendMessage(response.chatId, response.message);
-        var sendResponse = m_bot.execute(request.parseMode(ParseMode.Markdown));
+        SendSticker sticker=null;
+        if (response.telegramStickerId != null)
+        {
+            sticker=new SendSticker(response.chatId,response.telegramStickerId);
+        }
+        var sendResponse = m_bot.execute(request.parseMode(ParseMode.Markdown).replyMarkup(createKeyboard()));
 
+        if (sticker != null)
+        {
+            m_bot.execute(sticker);
+        }
         if (!sendResponse.isOk())
             System.err.printf("Не могу отправить ответ (ChatID: %d, Message: \"%s\")%n",
                     response.chatId,
@@ -123,6 +135,12 @@ public class TelegramBotWrapper implements IChatBotWrapper {
         });
     }
 
+    public ReplyKeyboardMarkup createKeyboard()
+    {
+        var a=new KeyboardButton("/start");
+        var b=new ReplyKeyboardMarkup(a);
+        return b.addRow("/score").addRow("/help").addRow("сдаюсь").resizeKeyboard(true);
+    }
     public void stop()
     {
         if (m_bot == null)
