@@ -54,7 +54,6 @@ public class QuizLogic implements IChatBotLogic {
 
     private ChatBotResponse selfInducedHandler() {
         var inactiveInfo = db.getInactiveChat();
-        System.out.println(inactiveInfo);
         if (inactiveInfo == null)
             return null;
 
@@ -72,22 +71,26 @@ public class QuizLogic implements IChatBotLogic {
     private ChatBotResponse quizHandler(ChatBotEvent event, long state) {
         if (event.message.contains("/score"))
         {
-            return displayScoreTable(event);
+            return displayScoreTable(event)
+                    .AddTelegramSticker("CAACAgIAAxkBAAEDSYNhkjFR_z-xv4RAK_RsMPq9Nr8xkgACIw0AAkxKAUtTdrbcofIwAyIE");
         }
 
-        if (event.message.contains("/help"))
+        if (event.message.contains("/help") || event.message.contains("/start") )
             return event.toResponse(
                     !event.isPrivateChat
                             ? greetMessageChat
-                            : greetMessagePM);
+                            : greetMessagePM)
+                    .AddTelegramSticker("CAACAgIAAxkBAAEDShFhkmhuE5lz_InXvOrrxZifKKaxYQACuwIAAqKK8QdcF8HD_GCZXyIE");
 
         if (event.message.toLowerCase().contains("вопрос"))
         {
             if (state != 0)
-                return event.toResponse(questionAlreadyExistMessage);
+                return event.toResponse(questionAlreadyExistMessage)
+                        .AddTelegramSticker("CAACAgIAAxkBAAEDShdhkm4DsdJFl_mBL851mR8Ca_gxDwACsQ0AAjppOUjINKv7N0gdWiIE");
 
             var question = updateQuestion(event);
-            return event.toResponse(question.question);
+            return event.toResponse(question.question)
+                    .AddTelegramSticker("CAACAgIAAxkBAAEDShdhkm4DsdJFl_mBL851mR8Ca_gxDwACsQ0AAjppOUjINKv7N0gdWiIE");
         }
 
         if (state != 0) {
@@ -98,7 +101,7 @@ public class QuizLogic implements IChatBotLogic {
                 db.setUserName(event.senderId, event.senderUsername);
                 db.scoreIncrement(event.chatId, event.senderId);
                 resetQuestion(event);
-                return event.toResponse(messageRightAnswer);
+                return event.toResponse(messageRightAnswer).AddTelegramSticker("CAACAgIAAxkBAAEDSjthkoEJoQKIsjn-1zi9UzVQFkI-jAAC4w0AArAsKUkmVocAAbI_aIAiBA");
             }
 
             if (event.message.toLowerCase().contains("сдаюсь"))
@@ -195,7 +198,7 @@ public class QuizLogic implements IChatBotLogic {
                     question.answerHintLength()));
 
         db.wrongAnswersCountIncrement(event.chatId);
-        return event.toResponse(sb.toString());
+        return event.toResponse(sb.toString()).AddTelegramSticker("CAACAgIAAxkBAAEDSjNhkoAkb9KIVhJ0xTBLBn5HdDeE5QACrBIAAmCRIEnnz3aDncA0fCIE");
     }
 
     private String getRemainingAnswersCountMessage(int failureCount) {

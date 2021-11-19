@@ -8,7 +8,7 @@ public class ChatBotEvent {
     public final boolean isPrivateChat;
     public final boolean isMentioned;
     public final boolean isSelfInduced;
-
+    public String stickerId=null;
     public ChatBotEvent()
     {
         this.isSelfInduced = true;
@@ -18,6 +18,7 @@ public class ChatBotEvent {
         this.isMentioned = false;
         this.message = null;
         this.isPrivateChat = false;
+
     }
 
     public ChatBotEvent(long chatId, long senderId, String senderUsername,
@@ -30,6 +31,7 @@ public class ChatBotEvent {
         this.message = message;
         this.isPrivateChat = isPrivateChat;
         this.isMentioned = isMentioned;
+
     }
 
     public ChatBotEvent(long senderId, String senderUsername, String message)
@@ -41,6 +43,7 @@ public class ChatBotEvent {
         this.message = message;
         this.isPrivateChat = true;
         this.isMentioned = false;
+
     }
 
     public ChatBotEvent toChatMessage(long chatId, boolean isMentioned)
@@ -48,7 +51,6 @@ public class ChatBotEvent {
         return new ChatBotEvent(chatId, senderId, senderUsername, message,
                 false, isMentioned);
     }
-
     public ChatBotResponse toResponse(String message)
     {
         if (isSelfInduced) // because in this case you have to manually define where to send response
