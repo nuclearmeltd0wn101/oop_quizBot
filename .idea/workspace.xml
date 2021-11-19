@@ -3,10 +3,20 @@
   <component name="AnalysisUIOptions">
     <option name="SCOPE_TYPE" value="3" />
   </component>
+  <component name="ArtifactsWorkspaceSettings">
+    <artifacts-to-build>
+      <artifact name="QuizBot:jar" />
+    </artifacts-to-build>
+  </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="715e0166-1601-40c5-a989-f0c8934d7171" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/artifacts/QuizBot_jar.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/company/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/company/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/QuizBot.iml" beforeDir="false" afterPath="$PROJECT_DIR$/QuizBot.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,6 +39,14 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
   <component name="ProjectCodeStyleSettingsMigration">
     <option name="version" value="1" />
   </component>
@@ -48,11 +66,12 @@
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="project.structure.last.edited" value="Libraries" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="project.structure.last.edited" value="SDKs" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
     <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
-    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
+    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
   </component>
   <component name="RunManager" selected="Application.quizbot">
     <configuration name="quizbot" type="Application" factoryName="Application">
@@ -125,6 +144,18 @@
       <updated>1632241221999</updated>
       <workItem from="1633268878720" duration="16000" />
       <workItem from="1633354109947" duration="133000" />
+      <workItem from="1636793880447" duration="322000" />
+      <workItem from="1636794684170" duration="8000" />
+      <workItem from="1636795518542" duration="316000" />
+      <workItem from="1636795873580" duration="2065000" />
+      <workItem from="1636805718297" duration="48000" />
+      <workItem from="1636971483806" duration="348000" />
+      <workItem from="1637035945167" duration="850000" />
+      <workItem from="1637037284473" duration="3633000" />
+      <workItem from="1637143223785" duration="1346000" />
+      <workItem from="1637144766697" duration="968000" />
+      <workItem from="1637328913208" duration="497000" />
+      <workItem from="1637330742526" duration="2124000" />
     </task>
     <servers />
   </component>
@@ -154,5 +185,9 @@
         <watch expression="response.message" language="JAVA" />
       </configuration>
     </watches-manager>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>

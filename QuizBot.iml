@@ -7,9 +7,9 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="xerial.sqlite.jdbc" level="application" />
-    <orderEntry type="library" name="github.pengrad.java.telegram.bot.api" level="application" />
-    <orderEntry type="module-library">
+    <orderEntry type="library" exported="" name="xerial.sqlite.jdbc" level="application" />
+    <orderEntry type="library" exported="" name="github.pengrad.java.telegram.bot.api" level="application" />
+    <orderEntry type="module-library" exported="">
       <library name="JUnit4">
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/junit/junit/4.13.1/junit-4.13.1.jar!/" />
@@ -19,7 +19,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module-library">
+    <orderEntry type="module-library" exported="">
       <library name="JUnit5.7.0">
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/junit/jupiter/junit-jupiter/5.7.0/junit-jupiter-5.7.0.jar!/" />
@@ -35,6 +35,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="junit" level="project" />
+    <orderEntry type="library" exported="" name="junit" level="project" />
+    <orderEntry type="library" exported="" name="junit.jupiter.api" level="application" />
   </component>
 </module>
