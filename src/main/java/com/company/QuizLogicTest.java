@@ -30,24 +30,8 @@ class QuizLogicTest {
     {
         var eventRandomMessage= new ChatBotEvent(0,null,"/help");
         var response = botLogic.handler(eventRandomMessage);
-        Assert.assertEquals("Привет, я - Викторина-бот!\nНапиши \"вопрос\" и я задам тебе вопрос",
+        Assert.assertEquals("Привет, я - Викторина-бот!\nНапиши \"вопрос\" и я задам тебе вопрос\nНапиши /score для получения таблицы счета",
                         response.message);
-    }
-    @Test
-    void handler_questionMessage_question() {
-        var eventRandomMessage= new ChatBotEvent(0,null,"вопрос");
-        var response = botLogic.handler(eventRandomMessage);
-        Assert.assertEquals(true, response.message.contains("Подсказка к ответу: начинается с"));
-    }
-
-    @Test
-    void handler_quizCorrectAnswer() {
-        var eventGiveQuestion = new ChatBotEvent(0,null,"вопрос");
-        var eventAnswer = new ChatBotEvent(0,null, testAnswer);
-
-        botLogic.handler(eventGiveQuestion);
-        var response = botLogic.handler(eventAnswer);
-        Assert.assertEquals(response.message,"Вы угадали!");
     }
     @Test
     void handler_quizWrongAnswer() {
@@ -56,7 +40,7 @@ class QuizLogicTest {
 
         botLogic.handler(eventGiveQuestion);
         var response = botLogic.handler(eventAnswer);
-        Assert.assertEquals(response.message,"Вы не угадали!");
+        Assert.assertEquals(response.message.split("\\.")[0],"Вы не угадали");
     }
 
 }
