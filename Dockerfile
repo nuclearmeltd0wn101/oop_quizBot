@@ -8,9 +8,7 @@ VOLUME /storage/
 RUN mkdir /app/
 WORKDIR /app/
 
-COPY out/artifacts/QuizBot_jar/QuizBot.jar /app/
+COPY target/QuizBot-1.0-SNAPSHOT.jar /app/QuizBot.jar
 COPY quiz_questions.txt /app/
 
 CMD java -jar QuizBot.jar
-
-LABEL name="Telegram Quiz bot"

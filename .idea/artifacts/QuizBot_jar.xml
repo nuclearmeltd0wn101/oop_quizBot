@@ -1,5 +1,5 @@
 <component name="ArtifactManager">
-  <artifact type="jar" name="QuizBot:jar">
+  <artifact type="jar" build-on-make="true" name="QuizBot:jar">
     <output-path>$PROJECT_DIR$/out/artifacts/QuizBot_jar</output-path>
     <root id="archive" name="QuizBot.jar">
       <element id="module-output" name="QuizBot" />
