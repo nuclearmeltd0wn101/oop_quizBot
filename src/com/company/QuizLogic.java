@@ -1,6 +1,7 @@
 package com.company;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 
 public class QuizLogic implements IChatBotLogic {
@@ -29,7 +30,6 @@ public class QuizLogic implements IChatBotLogic {
     private static final String messageHelpHint
             = "Напишите /help для получения справочного сообщения";
     private static final String messageRightAnswer = "Вы угадали!";
-    private static final String scoreTableEmptyMessage =  "В таблице счета пока нет записей";
     private static final String firstHintMessage = "\n\nПодсказка №1: Ответ начинается с буквы \"%s\" ";
     private static final String secondHintMessage="\nПодсказка №2: Длина ответа - %s символов";
     private static final String giveUpMessage= "Напишите \"сдаюсь\" ещё %s раза";
@@ -40,7 +40,6 @@ public class QuizLogic implements IChatBotLogic {
     private final ArrayList<QuizQuestion> questions;
     private final Random rand;
     private final IQuizDB db;
-
     public QuizLogic(ArrayList<QuizQuestion> questions, IQuizDB db)
     {
         this.questions = questions;
@@ -56,12 +55,18 @@ public class QuizLogic implements IChatBotLogic {
         var inactiveInfo = db.getInactiveChat();
         if (inactiveInfo == null)
             return null;
-
+        ArrayList<String> messages = new ArrayList<String>();
+        messages.add("не хотите сыграть?");
+        messages.add("ты забыл обо мне?");
+        messages.add("готов задать вопрос");
+        messages.add("Давай сыграем!");
+        messages.add("проверим твою эрудицию?");
+        Collections.shuffle(messages);
         // todo бахнуть более информативное (и, желательно рофельное) напоминание (бахни массив всратых цитат
         //  душного артема из закрепов конфы и кидай их в начало сообщения, в конце же просто напоминай юзеру,
         //  что мб ему стоит снова поиграть с ботом (желательно тоже с закосом под душного артема, и ваще тексты
         //  сообщений лучше переделать так чтобы это был не викторина-бот а "Викторина Душных Вопросов от ТОП-1 КНа")
-        var response = new ChatBotResponse(inactiveInfo.chatId, "kek");
+        var response = new ChatBotResponse(inactiveInfo.chatId, messages.get(0));
 
         return inactiveInfo.isAnyMore
                 ? response.SelfInducedNotOverYet()
@@ -71,8 +76,8 @@ public class QuizLogic implements IChatBotLogic {
     private ChatBotResponse quizHandler(ChatBotEvent event, long state) {
         if (event.message.contains("/score"))
         {
-            return displayScoreTable(event)
-                    .AddTelegramSticker("CAACAgIAAxkBAAEDSYNhkjFR_z-xv4RAK_RsMPq9Nr8xkgACIw0AAkxKAUtTdrbcofIwAyIE");
+            return new DisplayOfScore(db).display(event)
+                    .AddTelegramSticker("CAACAgIAAxkBAAEDVPlhmilWc7ZzcjRMtge8ij3llCTEQAACYwQAAs7Y6Asx61tywusibCIE");
         }
 
         if (event.message.contains("/help") || event.message.contains("/start") )
@@ -81,7 +86,10 @@ public class QuizLogic implements IChatBotLogic {
                             ? greetMessageChat
                             : greetMessagePM)
                     .AddTelegramSticker("CAACAgIAAxkBAAEDShFhkmhuE5lz_InXvOrrxZifKKaxYQACuwIAAqKK8QdcF8HD_GCZXyIE");
-
+        if (event.message.contains("повтор"))
+        {
+            return event.toResponse(questions.get(db.getQuestionId(event.chatId)).question);
+        }
         if (event.message.toLowerCase().contains("вопрос"))
         {
             if (state != 0)
@@ -101,7 +109,8 @@ public class QuizLogic implements IChatBotLogic {
                 db.setUserName(event.senderId, event.senderUsername);
                 db.scoreIncrement(event.chatId, event.senderId);
                 resetQuestion(event);
-                return event.toResponse(messageRightAnswer).AddTelegramSticker("CAACAgIAAxkBAAEDSjthkoEJoQKIsjn-1zi9UzVQFkI-jAAC4w0AArAsKUkmVocAAbI_aIAiBA");
+                return event.toResponse(messageRightAnswer)
+                        .AddTelegramSticker("CAACAgIAAxkBAAEDSjthkoEJoQKIsjn-1zi9UzVQFkI-jAAC4w0AArAsKUkmVocAAbI_aIAiBA");
             }
 
             if (event.message.toLowerCase().contains("сдаюсь"))
@@ -113,43 +122,6 @@ public class QuizLogic implements IChatBotLogic {
         return event.toResponse(messageHelpHint);
     }
 
-    private ChatBotResponse displayScoreTable(ChatBotEvent event) { // todo это должно быть не в QuizLogic
-        var table= db.getScoreTable(event.chatId);
-        if (db.getScoreTable(event.chatId) == null)
-            return event.toResponse(scoreTableEmptyMessage);
-        System.out.println();
-        var sb = new StringBuilder();
-        var maximumScore=0;
-        var maximumName=" ";
-        for (QuizScore item:
-                table) {
-            if (item.score>maximumScore)
-            {
-                maximumScore=Math.toIntExact(item.score);
-            }
-            if (db.getUserName(item.userId).length()>maximumName.length())
-            {
-                maximumName= db.getUserName(item.userId);
-            }
-        }
-
-        for (QuizScore item:table) {
-            sb.append("\n");
-            var userName=db.getUserName(item.userId);
-            var lengthName = 60;
-            if (maximumScore + maximumName.length() > 58)
-                lengthName = 58 - maximumScore;
-            if (userName.length() + String.valueOf(item.score).length()>57)
-                sb.append(userName,0,lengthName);
-            else
-                sb.append(userName);
-            var diff = maximumName.length() - userName.length();
-            sb.append(" ".repeat(Math.max(0, diff + 1)));
-            sb.append("| ");
-            sb.append(item.score);
-        }
-        return event.toResponse("```"+sb+"```");
-    }
 
     public ChatBotResponse handler(ChatBotEvent event) {
         if (event.isSelfInduced)
@@ -198,7 +170,8 @@ public class QuizLogic implements IChatBotLogic {
                     question.answerHintLength()));
 
         db.wrongAnswersCountIncrement(event.chatId);
-        return event.toResponse(sb.toString()).AddTelegramSticker("CAACAgIAAxkBAAEDSjNhkoAkb9KIVhJ0xTBLBn5HdDeE5QACrBIAAmCRIEnnz3aDncA0fCIE");
+        return event.toResponse(sb.toString())
+                .AddTelegramSticker("CAACAgIAAxkBAAEDSjNhkoAkb9KIVhJ0xTBLBn5HdDeE5QACrBIAAmCRIEnnz3aDncA0fCIE");
     }
 
     private String getRemainingAnswersCountMessage(int failureCount) {
