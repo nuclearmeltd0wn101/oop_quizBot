@@ -16,7 +16,7 @@ public class Main {
         var questions = QuestionsParser.fromTextFile("quiz_questions.txt", "\\*");
         var db = new QuizDBSQLite(dbPath);
         var botLogic = new QuizLogic(questions, db);
-        botLogic.setRemindPolicy(1000000, 5);
+        botLogic.setRemindPolicy(345600, 5);
 
         var bot = new TelegramBotWrapper(botLogic, token);
         bot.run();
