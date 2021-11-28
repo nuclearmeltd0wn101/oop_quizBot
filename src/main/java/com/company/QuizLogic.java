@@ -17,38 +17,51 @@ public class QuizLogic implements IChatBotLogic {
 
     private final ArrayList<QuizQuestion> questions;
     private final Random rand;
-    private final IQuizDB db;
-    public QuizLogic(ArrayList<QuizQuestion> questions, IQuizDB db)
+    private final IQuestionIdRepository questionRepo;
+    private final IRemindRepository remindRepo;
+    private final IScoreRepository scoreRepo;
+    private final IStatesRepository statesRepo;
+    private final IUserNamesRepository userNameRepo;
+    private final IWrongAnswersCountRepository wrongRepo;
+    private final IGiveUpRequestsCountRepository giveUpRepo;
+
+
+    public QuizLogic(ArrayList<QuizQuestion> questions, IQuestionIdRepository questionRepo,
+                     IRemindRepository remindRepo, IScoreRepository scoreRepo, IStatesRepository statesRepo,
+                     IUserNamesRepository userNameRepo, IWrongAnswersCountRepository wrongRepo,IGiveUpRequestsCountRepository giveUpRepo)
     {
         this.questions = questions;
         rand = new Random();
-        this.db = db;
+        this.questionRepo=questionRepo;
+        this.remindRepo=remindRepo;
+        this.scoreRepo=scoreRepo;
+        this.statesRepo=statesRepo;
+        this.userNameRepo = userNameRepo;
+        this.wrongRepo=wrongRepo;
+        this.giveUpRepo=giveUpRepo;
     }
 
-    public void setRemindPolicy(long remindDelaySeconds, int maxRemindAttempts) {
-        db.setRemindPolicy(remindDelaySeconds, maxRemindAttempts);
-    }
     private ChatBotResponse quizHandler(ChatBotEvent event, State state) {
         if (event.message.contains("/score"))
         {
-            return new DisplayOfScore(db).display(event)
+            return new DisplayOfScore(scoreRepo, userNameRepo).display(event)
                     .AddTelegramSticker("CAACAgIAAxkBAAEDVPlhmilWc7ZzcjRMtge8ij3llCTEQAACYwQAAs7Y6Asx61tywusibCIE");
         }
 
         if (event.message.contains("/help") || event.message.contains("/start") )
             return event.toResponse(
                     !event.isPrivateChat
-                            ? String.valueOf(Constants.greetMessageChat)
-                            : String.valueOf(Constants.greetMessagePM))
+                            ? StringConstants.greetMessageChat
+                            : StringConstants.greetMessagePM)
                     .AddTelegramSticker("CAACAgIAAxkBAAEDShFhkmhuE5lz_InXvOrrxZifKKaxYQACuwIAAqKK8QdcF8HD_GCZXyIE");
         if (event.message.contains("повтор"))
         {
-            return event.toResponse(questions.get(db.getQuestionId(event.chatId)).question);
+            return event.toResponse(questions.get(questionRepo.Get(event.chatId)).question);
         }
         if (event.message.toLowerCase().contains("вопрос"))
         {
             if (state != State.Inactive)
-                return event.toResponse(String.valueOf(Constants.questionAlreadyExistMessage))
+                return event.toResponse(StringConstants.questionAlreadyExistMessage)
                         .AddTelegramSticker("CAACAgIAAxkBAAEDShdhkm4DsdJFl_mBL851mR8Ca_gxDwACsQ0AAjppOUjINKv7N0gdWiIE");
 
             var question = updateQuestion(event);
@@ -57,14 +70,14 @@ public class QuizLogic implements IChatBotLogic {
         }
 
         if (state != State.Inactive) {
-            var questionId= db.getQuestionId(event.chatId);
+            var questionId= questionRepo.Get(event.chatId);
             var question = questions.get(questionId);
 
             if (question.validateAnswer(event.message.toLowerCase())) {
-                db.setUserName(event.senderId, event.senderUsername);
-                db.scoreIncrement(event.chatId, event.senderId);
+                userNameRepo.Set(event.senderId, event.senderUsername);
+                scoreRepo.Increment(event.chatId, event.senderId);
                 resetQuestion(event);
-                return event.toResponse(String.valueOf(Constants.messageRightAnswer))
+                return event.toResponse(StringConstants.messageRightAnswer)
                         .AddTelegramSticker("CAACAgIAAxkBAAEDSjthkoEJoQKIsjn-1zi9UzVQFkI-jAAC4w0AArAsKUkmVocAAbI_aIAiBA");
             }
 
@@ -74,85 +87,85 @@ public class QuizLogic implements IChatBotLogic {
             return processWrongAnswer(event, question);
         }
 
-        return event.toResponse(String.valueOf(Constants.messageHelpHint));
+        return event.toResponse(StringConstants.messageHelpHint);
     }
 
 
     public ChatBotResponse handler(ChatBotEvent event) {
         if (event.isSelfInduced)
-            return new SelfInducedHandler(db, new ArrayList<>(Arrays.
+            return new SelfInducedHandler(remindRepo, new ArrayList<>(Arrays.
                     asList("ты забыл обо мне?", "не хотите сыграть?", "готов задать вопрос", "Давай сыграем!"
                             , "проверим твою эрудицию?"))).induce();
 
         if (!event.isPrivateChat && !event.isMentioned) // ignore public chat w\o mention
             return null;
 
-        db.updateChatLastActiveTimestamp(event.chatId);
-        var state=db.getState(event.chatId)==0?State.Inactive:State.WaitingForTheAnswer;
+        remindRepo.updateLastActiveTimestamp(event.chatId);
+        var state=statesRepo.Get(event.chatId)==0?State.Inactive:State.WaitingForTheAnswer;
         return quizHandler(event, state);
     }
 
     private void resetQuestion(ChatBotEvent event) {
-        db.giveUpRequestsCountReset(event.chatId);
-        db.wrongAnswersCountReset(event.chatId);
-        db.setState(event.chatId, 0);
+        giveUpRepo.Reset(event.chatId);
+        wrongRepo.Reset(event.chatId);
+        statesRepo.Set(event.chatId, 0);
     }
 
     private QuizQuestion updateQuestion(ChatBotEvent event) {
         var questionId = rand.nextInt(questions.size());
-        db.setQuestionId(event.chatId, questionId);
+        questionRepo.Set(event.chatId, questionId);
 
-        db.setState(event.chatId,1);
+        statesRepo.Set(event.chatId,1);
         return questions.get(questionId);
     }
 
     private ChatBotResponse processWrongAnswer(ChatBotEvent event, QuizQuestion question) {
-        var failureCount= db.getWrongAnswersCount(event.chatId);
+        var failureCount= wrongRepo.Get(event.chatId);
         if (failureCount == wrongAnswersLimit)
         {
             resetQuestion(event);
-            return event.toResponse(String.valueOf(Constants.wrongAnswersLimitMessage));
+            return event.toResponse(StringConstants.wrongAnswersLimitMessage);
         }
 
         var sb = new StringBuilder(
                 getRemainingAnswersCountMessage(failureCount));
 
         if (failureCount >= firstHintThreshold)
-            sb.append(String.format(String.valueOf(Constants.firstHintMessage),
+            sb.append(String.format(StringConstants.firstHintMessage,
                     question.answerHintFirstLetter()));
 
         if (failureCount >= secondHintThreshold)
-            sb.append(String.format(String.valueOf(Constants.secondHintMessage),
+            sb.append(String.format(StringConstants.secondHintMessage,
                     question.answerHintLength()));
 
-        db.wrongAnswersCountIncrement(event.chatId);
+        wrongRepo.Increment(event.chatId);
         return event.toResponse(sb.toString())
                 .AddTelegramSticker("CAACAgIAAxkBAAEDSjNhkoAkb9KIVhJ0xTBLBn5HdDeE5QACrBIAAmCRIEnnz3aDncA0fCIE");
     }
 
     private String getRemainingAnswersCountMessage(int failureCount) {
         if (failureCount < 5)
-            return String.format(String.valueOf(Constants.remainingAnswersCountMessageMany), wrongAnswersLimit- failureCount);
+            return String.format(StringConstants.remainingAnswersCountMessageMany, wrongAnswersLimit- failureCount);
         else if (failureCount <8)
-            return String.format(String.valueOf(Constants.remainingAnswersCountMessageFew), wrongAnswersLimit - failureCount);
+            return String.format(StringConstants.remainingAnswersCountMessageFew, wrongAnswersLimit - failureCount);
         else
-            return String.format(String.valueOf(Constants.remainingAnswersCountMessageLast), wrongAnswersLimit - failureCount);
+            return String.format(StringConstants.remainingAnswersCountMessageLast, wrongAnswersLimit - failureCount);
     }
 
     private ChatBotResponse processGiveUpRequest(ChatBotEvent event) {
-        var giveUpCount= db.getGiveUpRequestsCount(event.chatId);
+        var giveUpCount= giveUpRepo.Get(event.chatId);
 
         var response = "";
         if (giveUpCount < giveUpCountRequired ) {
-            db.giveUpRequestsCountIncrement(event.chatId);
-            response = String.format(giveUpCount==1?String.valueOf(Constants.giveUpMessage2):String.valueOf(Constants.giveUpMessage),
+            giveUpRepo.Increment(event.chatId);
+            response = String.format(giveUpCount==1?StringConstants.giveUpMessage2:StringConstants.giveUpMessage,
                     giveUpCountRequired - giveUpCount);
         }
         else
         {
             resetQuestion(event);
             var question = updateQuestion(event);
-            response = String.valueOf(Constants.questionResetMessage)
+            response = StringConstants.questionResetMessage
                     + question.question;
 
         }

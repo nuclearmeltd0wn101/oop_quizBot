@@ -4,17 +4,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class SelfInducedHandler {
-    private final IQuizDB db;
+    private final IRemindRepository remindRepo;
     private ArrayList<String> messages;
-    public SelfInducedHandler(IQuizDB db,ArrayList<String> messages)
+    public SelfInducedHandler(IRemindRepository remindRepo,ArrayList<String> messages)
     {
-        this.db=db;
+        this.remindRepo=remindRepo;
         this.messages=messages;
     }
     public ChatBotResponse induce() {
-        var inactiveInfo = db.getInactiveChat();
+        var inactiveInfo = remindRepo.getChat();
         if (inactiveInfo == null)
             return null;
+        remindRepo.incrementRemindAttemptsCount(inactiveInfo.chatId);
         Collections.shuffle(messages);
         var response = new ChatBotResponse(inactiveInfo.chatId, messages.get(0));
 
