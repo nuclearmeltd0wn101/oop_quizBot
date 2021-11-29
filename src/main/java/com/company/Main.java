@@ -1,5 +1,11 @@
 package com.company;
 
+import com.company.botBehavior.RemindPolicy;
+import com.company.database.*;
+import com.company.quiz.QuestionsParser;
+import com.company.quiz.QuizLogic;
+import com.company.wrappers.TelegramBotWrapper;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
