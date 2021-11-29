@@ -5,9 +5,6 @@ public class QuestionIdRepositorySQLite implements IQuestionIdRepository {
 
     public QuestionIdRepositorySQLite(IDatabaseCoreSQLite db) {
         this.db = db;
-        db.Save(new String[] { // todo: migrate to external db init
-                "CREATE table if NOT EXISTS questionIds (chatId INTEGER PRIMARY KEY, questionId INTEGER)"
-        });
     }
 
     public int Get(long chatId) {

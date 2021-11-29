@@ -5,10 +5,6 @@ public class UserNamesRepositorySQLite implements IUserNamesRepository {
 
     public UserNamesRepositorySQLite(IDatabaseCoreSQLite db) {
         this.db = db;
-
-        db.Save(new String[] {
-                "CREATE table IF NOT EXISTS userNames (userId INTEGER PRIMARY KEY, name TEXT)"
-        });
     }
 
     public String Get(long userId) {

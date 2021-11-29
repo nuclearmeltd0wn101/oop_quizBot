@@ -5,10 +5,6 @@ public class StatesRepositorySQLite implements IStatesRepository {
 
     public StatesRepositorySQLite(IDatabaseCoreSQLite db) {
         this.db = db;
-
-        db.Save(new String[] { // todo: migrate to external db init
-                "CREATE table if NOT EXISTS states (chatId INTEGER PRIMARY KEY, state INTEGER)"
-        });
     }
 
     public long Get(long chatId) {

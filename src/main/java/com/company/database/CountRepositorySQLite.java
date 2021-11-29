@@ -10,13 +10,6 @@ public class CountRepositorySQLite implements ICountRepository {
 
         this.countName = countName;
         this.db = db;
-
-        db.Save(new String[] {
-                String.format(
-                        "CREATE table if NOT EXISTS %s (chatId INTEGER PRIMARY KEY, count INTEGER)",
-                        countName)
-        });
-
     }
 
     public int Get(long chatId) {

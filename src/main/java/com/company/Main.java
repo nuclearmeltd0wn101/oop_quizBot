@@ -20,17 +20,17 @@ public class Main {
         }
 
         var questions = QuestionsParser.fromTextFile("quiz_questions.txt", "\\*");
-        var remindPolicy=new RemindPolicy(5, 3);
+        var remindPolicy = new RemindPolicy(5, 3 * 24 * 60 * 60);
         var dbCore = new DatabaseCoreSQLite(dbPath);
-        var questionRepo=new QuestionIdRepositorySQLite(dbCore);
-        var remindRepo=new RemindRepositorySQLite(dbCore,remindPolicy);
-        var scoreRepo=new ScoreRepositorySQLite(dbCore);
-        var statesRepo=new StatesRepositorySQLite(dbCore);
-        var userNameRepo=new UserNamesRepositorySQLite(dbCore);
-        var wrongRepo=new WrongAnswersCountRepositorySQLite(dbCore);
-        var giveUpRepo=new GiveUpRequestsCountRepositorySQLite(dbCore);
-        var botLogic = new QuizLogic(questions,questionRepo,remindRepo,scoreRepo,
-                statesRepo,userNameRepo,wrongRepo,giveUpRepo);
+        var questionRepo = new QuestionIdRepositorySQLite(dbCore);
+        var remindRepo = new RemindRepositorySQLite(dbCore,remindPolicy);
+        var scoreRepo = new ScoreRepositorySQLite(dbCore);
+        var statesRepo = new StatesRepositorySQLite(dbCore);
+        var userNameRepo = new UserNamesRepositorySQLite(dbCore);
+        var wrongRepo = new WrongAnswersCountRepositorySQLite(dbCore);
+        var giveUpRepo = new GiveUpRequestsCountRepositorySQLite(dbCore);
+        var botLogic = new QuizLogic(questions, questionRepo, remindRepo, scoreRepo,
+                statesRepo, userNameRepo, wrongRepo, giveUpRepo);
 
         var bot = new TelegramBotWrapper(botLogic, token);
         bot.run();
