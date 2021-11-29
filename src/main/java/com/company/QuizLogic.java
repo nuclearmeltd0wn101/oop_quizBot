@@ -97,7 +97,7 @@ public class QuizLogic implements IChatBotLogic {
             return new SelfInducedHandler(remindRepo, new ArrayList<>(Arrays.
                     asList("ты забыл обо мне?", "не хотите сыграть?", "готов задать вопрос", "Давай сыграем!"
                             , "проверим твою эрудицию?"))).induce();
-        else
+        if (event instanceof ChatBotEvent)
         {
             var cast=(ChatBotEvent)event;
             if (!cast.isPrivateChat && !cast.isMentioned) // ignore public chat w\o mention
@@ -107,6 +107,7 @@ public class QuizLogic implements IChatBotLogic {
             var state = statesRepo.Get(cast.chatId) == 0 ? State.Inactive : State.WaitingForTheAnswer;
             return quizHandler(cast, state);
         }
+        throw new IllegalStateException();
     }
 
     private void resetQuestion(ChatBotEvent event) {
