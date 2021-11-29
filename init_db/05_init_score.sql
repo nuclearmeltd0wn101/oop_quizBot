@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS score (chatId INTEGER, userId INTEGER, score INTEGER, PRIMARY KEY (chatId, userId));

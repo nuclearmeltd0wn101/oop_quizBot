@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS questionIds (chatId INTEGER PRIMARY KEY, questionId INTEGER);
