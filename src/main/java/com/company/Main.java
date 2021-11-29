@@ -14,7 +14,7 @@ public class Main {
         }
 
         var questions = QuestionsParser.fromTextFile("quiz_questions.txt", "\\*");
-        var remindPolicy=new RemindPolicy(5, 3 * 24 * 60 * 60);
+        var remindPolicy=new RemindPolicy(5, 3);
         var dbCore = new DatabaseCoreSQLite(dbPath);
         var questionRepo=new QuestionIdRepositorySQLite(dbCore);
         var remindRepo=new RemindRepositorySQLite(dbCore,remindPolicy);

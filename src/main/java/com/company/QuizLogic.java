@@ -91,18 +91,22 @@ public class QuizLogic implements IChatBotLogic {
     }
 
 
-    public ChatBotResponse handler(ChatBotEvent event) {
-        if (event.isSelfInduced)
+    public ChatBotResponse handler(IEvent event) {
+
+        if (event instanceof SelfInducedEvent)
             return new SelfInducedHandler(remindRepo, new ArrayList<>(Arrays.
                     asList("ты забыл обо мне?", "не хотите сыграть?", "готов задать вопрос", "Давай сыграем!"
                             , "проверим твою эрудицию?"))).induce();
+        else
+        {
+            var cast=(ChatBotEvent)event;
+            if (!cast.isPrivateChat && !cast.isMentioned) // ignore public chat w\o mention
+                return null;
 
-        if (!event.isPrivateChat && !event.isMentioned) // ignore public chat w\o mention
-            return null;
-
-        remindRepo.updateLastActiveTimestamp(event.chatId);
-        var state=statesRepo.Get(event.chatId)==0?State.Inactive:State.WaitingForTheAnswer;
-        return quizHandler(event, state);
+            remindRepo.updateLastActiveTimestamp(cast.chatId);
+            var state = statesRepo.Get(cast.chatId) == 0 ? State.Inactive : State.WaitingForTheAnswer;
+            return quizHandler(cast, state);
+        }
     }
 
     private void resetQuestion(ChatBotEvent event) {
