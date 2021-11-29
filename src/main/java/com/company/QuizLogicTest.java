@@ -16,7 +16,7 @@ class QuizLogicTest {
         var db = new QuizDBRAM();
         questions = new ArrayList<>();
         questions.add(new QuizQuestion(0, testQuestion, testAnswer));
-        botLogic = new QuizLogic(questions, db);
+        //botLogic = new QuizLogic(questions, db);
     }
 
     @Test
