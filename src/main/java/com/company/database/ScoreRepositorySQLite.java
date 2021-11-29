@@ -9,11 +9,6 @@ public class ScoreRepositorySQLite implements IScoreRepository {
 
     public ScoreRepositorySQLite(IDatabaseCoreSQLite db) {
         this.db = db;
-
-        db.Save(new String[] { // todo: migrate to external db init
-                "CREATE table if NOT EXISTS score (chatId INTEGER,"
-                    + "userId INTEGER, score INTEGER, PRIMARY KEY (chatId, userId))"
-        });
     }
 
     public void Increment(long chatId, long userId) {

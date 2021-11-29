@@ -12,11 +12,6 @@ public class RemindRepositorySQLite implements IRemindRepository {
     public RemindRepositorySQLite(IDatabaseCoreSQLite db, RemindPolicy remindPolicy) {
         this.db = db;
         this.remindPolicy = remindPolicy;
-
-        db.Save(new String[] {
-                "CREATE table if NOT EXISTS chatsInactive (chatId INTEGER PRIMARY KEY, "
-                    + "lastActiveTimestampUnix INTEGER, remindAttemptsCount)"
-        });
     }
 
     public InactiveChatInfo getChat() {
