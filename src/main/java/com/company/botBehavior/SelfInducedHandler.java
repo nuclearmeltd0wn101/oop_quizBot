@@ -7,7 +7,7 @@ import java.util.Collections;
 
 public class SelfInducedHandler {
     private final IRemindRepository remindRepo;
-    private ArrayList<String> messages;
+    private final ArrayList<String> messages;
     public SelfInducedHandler(IRemindRepository remindRepo,ArrayList<String> messages)
     {
         this.remindRepo=remindRepo;
