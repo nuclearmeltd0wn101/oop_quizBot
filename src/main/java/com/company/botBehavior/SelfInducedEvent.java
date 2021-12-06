@@ -1,5 +1,4 @@
 package com.company.botBehavior;
 
-public class SelfInducedEvent implements IEvent{
-
+public class SelfInducedEvent implements IEvent {
 }

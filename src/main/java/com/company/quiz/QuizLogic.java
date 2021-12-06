@@ -3,23 +3,26 @@ package com.company.quiz;
 import com.company.botBehavior.*;
 import com.company.database.*;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Random;
 
 public class QuizLogic implements IChatBotLogic {
-    enum State
-    {
+    enum State {
         Inactive,
         WaitingForTheAnswer
     }
+
     private static final int giveUpCountRequired = 2;
     private static final int wrongAnswersLimit = 9;
     private static final int firstHintThreshold = 2;
     private static final int secondHintThreshold = 5;
 
     private final ArrayList<QuizQuestion> questions;
-    private final Random rand;
+
+    @Inject
+    private Random rand;
+
     private final IQuestionIdRepository questionRepo;
     private final IRemindRepository remindRepo;
     private final IScoreRepository scoreRepo;
@@ -28,41 +31,48 @@ public class QuizLogic implements IChatBotLogic {
     private final IWrongAnswersCountRepository wrongRepo;
     private final IGiveUpRequestsCountRepository giveUpRepo;
 
+    @Inject
+    private SelfInducedHandler selfInducedHandler;
 
-    public QuizLogic(ArrayList<QuizQuestion> questions, IQuestionIdRepository questionRepo,
-                     IRemindRepository remindRepo, IScoreRepository scoreRepo, IStatesRepository statesRepo,
-                     IUserNamesRepository userNameRepo, IWrongAnswersCountRepository wrongRepo,IGiveUpRequestsCountRepository giveUpRepo)
+    @Inject
+    private DisplayOfScore displayOfScore;
+
+    @Inject
+    public QuizLogic(ArrayList<QuizQuestion> questions,
+                     IQuestionIdRepository questionRepo,
+                     IRemindRepository remindRepo,
+                     IScoreRepository scoreRepo,
+                     IStatesRepository statesRepo,
+                     IUserNamesRepository userNameRepo,
+                     IWrongAnswersCountRepository wrongRepo,
+                     IGiveUpRequestsCountRepository giveUpRepo)
     {
         this.questions = questions;
-        rand = new Random();
-        this.questionRepo=questionRepo;
-        this.remindRepo=remindRepo;
-        this.scoreRepo=scoreRepo;
-        this.statesRepo=statesRepo;
+        this.questionRepo = questionRepo;
+        this.remindRepo = remindRepo;
+        this.scoreRepo = scoreRepo;
+        this.statesRepo = statesRepo;
         this.userNameRepo = userNameRepo;
-        this.wrongRepo=wrongRepo;
-        this.giveUpRepo=giveUpRepo;
+        this.wrongRepo = wrongRepo;
+        this.giveUpRepo = giveUpRepo;
     }
 
     private ChatBotResponse quizHandler(ChatBotEvent event, State state) {
-        if (event.message.contains("/score"))
-        {
-            return new DisplayOfScore(scoreRepo, userNameRepo).display(event)
+        if (event.message.contains("/score")) {
+            return displayOfScore.display(event)
                     .AddTelegramSticker("CAACAgIAAxkBAAEDVPlhmilWc7ZzcjRMtge8ij3llCTEQAACYwQAAs7Y6Asx61tywusibCIE");
         }
 
-        if (event.message.contains("/help") || event.message.contains("/start") )
+        if (event.message.contains("/help") || event.message.contains("/start"))
             return event.toResponse(
-                    !event.isPrivateChat
-                            ? StringConstants.greetMessageChat
-                            : StringConstants.greetMessagePM)
+                            !event.isPrivateChat
+                                    ? StringConstants.greetMessageChat
+                                    : StringConstants.greetMessagePM)
                     .AddTelegramSticker("CAACAgIAAxkBAAEDShFhkmhuE5lz_InXvOrrxZifKKaxYQACuwIAAqKK8QdcF8HD_GCZXyIE");
-        if (event.message.contains("повтор"))
-        {
+        if (event.message.contains("повтор")) {
             return event.toResponse(questions.get(questionRepo.Get(event.chatId)).question);
         }
-        if (event.message.toLowerCase().contains("вопрос"))
-        {
+        if (event.message.toLowerCase().contains("вопрос")) {
             if (state != State.Inactive)
                 return event.toResponse(StringConstants.questionAlreadyExistMessage)
                         .AddTelegramSticker("CAACAgIAAxkBAAEDShdhkm4DsdJFl_mBL851mR8Ca_gxDwACsQ0AAjppOUjINKv7N0gdWiIE");
@@ -73,7 +83,7 @@ public class QuizLogic implements IChatBotLogic {
         }
 
         if (state != State.Inactive) {
-            var questionId= questionRepo.Get(event.chatId);
+            var questionId = questionRepo.Get(event.chatId);
             var question = questions.get(questionId);
 
             if (question.validateAnswer(event.message.toLowerCase())) {
@@ -95,14 +105,9 @@ public class QuizLogic implements IChatBotLogic {
 
 
     public ChatBotResponse handler(IEvent event) {
-
         if (event instanceof SelfInducedEvent)
-            return new SelfInducedHandler(remindRepo, new ArrayList<>(Arrays.
-                    asList("ты забыл обо мне?", "не хотите сыграть?", "готов задать вопрос", "Давай сыграем!"
-                            , "проверим твою эрудицию?"))).induce();
-        if (event instanceof ChatBotEvent)
-        {
-            var cast=(ChatBotEvent)event;
+            return selfInducedHandler.induce();
+        if (event instanceof ChatBotEvent cast) {
             if (!cast.isPrivateChat && !cast.isMentioned) // ignore public chat w\o mention
                 return null;
 
@@ -123,14 +128,13 @@ public class QuizLogic implements IChatBotLogic {
         var questionId = rand.nextInt(questions.size());
         questionRepo.Set(event.chatId, questionId);
 
-        statesRepo.Set(event.chatId,1);
+        statesRepo.Set(event.chatId, 1);
         return questions.get(questionId);
     }
 
     private ChatBotResponse processWrongAnswer(ChatBotEvent event, QuizQuestion question) {
-        var failureCount= wrongRepo.Get(event.chatId);
-        if (failureCount == wrongAnswersLimit)
-        {
+        var failureCount = wrongRepo.Get(event.chatId);
+        if (failureCount == wrongAnswersLimit) {
             resetQuestion(event);
             return event.toResponse(StringConstants.wrongAnswersLimitMessage);
         }
@@ -153,24 +157,22 @@ public class QuizLogic implements IChatBotLogic {
 
     private String getRemainingAnswersCountMessage(int failureCount) {
         if (failureCount < 5)
-            return String.format(StringConstants.remainingAnswersCountMessageMany, wrongAnswersLimit- failureCount);
-        else if (failureCount <8)
+            return String.format(StringConstants.remainingAnswersCountMessageMany, wrongAnswersLimit - failureCount);
+        else if (failureCount < 8)
             return String.format(StringConstants.remainingAnswersCountMessageFew, wrongAnswersLimit - failureCount);
         else
             return String.format(StringConstants.remainingAnswersCountMessageLast, wrongAnswersLimit - failureCount);
     }
 
     private ChatBotResponse processGiveUpRequest(ChatBotEvent event) {
-        var giveUpCount= giveUpRepo.Get(event.chatId);
+        var giveUpCount = giveUpRepo.Get(event.chatId);
 
         var response = "";
-        if (giveUpCount < giveUpCountRequired ) {
+        if (giveUpCount < giveUpCountRequired) {
             giveUpRepo.Increment(event.chatId);
-            response = String.format(giveUpCount==1?StringConstants.giveUpMessage2:StringConstants.giveUpMessage,
+            response = String.format(giveUpCount == 1 ? StringConstants.giveUpMessage2 : StringConstants.giveUpMessage,
                     giveUpCountRequired - giveUpCount);
-        }
-        else
-        {
+        } else {
             resetQuestion(event);
             var question = updateQuestion(event);
             response = StringConstants.questionResetMessage
