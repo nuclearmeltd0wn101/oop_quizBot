@@ -3,8 +3,10 @@ package com.company;
 import com.company.botBehavior.ChatBotEvent;
 import com.company.botBehavior.RemindPolicy;
 import com.company.database.*;
+import com.company.inject.BasicModule;
 import com.company.quiz.QuizLogic;
 import com.company.quiz.QuizQuestion;
+import com.google.inject.Guice;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,8 +47,22 @@ class QuizLogicTest {
         var userNameRepo = new UserNamesRepositorySQLite(dbCore);
         var wrongRepo = new WrongAnswersCountRepositorySQLite(dbCore);
         var giveUpRepo = new GiveUpRequestsCountRepositorySQLite(dbCore);
-        botLogic = new QuizLogic(questions, questionRepo, remindRepo, scoreRepo,
-                statesRepo, userNameRepo, wrongRepo, giveUpRepo);
+//        botLogic = new QuizLogic(questions, questionRepo, remindRepo, scoreRepo,
+//                statesRepo, userNameRepo, wrongRepo, giveUpRepo);
+        var injector = Guice.createInjector(new BasicModule());
+        /*var bindings = injector.getAllBindings().entrySet();
+        for (var e :
+                bindings) {
+            System.out.println(e);
+        }*/
+        botLogic = new QuizLogic(questions,
+                injector.getInstance(IQuestionIdRepository.class),
+                injector.getInstance(IRemindRepository.class),
+                injector.getInstance(IScoreRepository.class),
+                injector.getInstance(IStatesRepository.class),
+                injector.getInstance(IUserNamesRepository.class),
+                injector.getInstance(IWrongAnswersCountRepository.class),
+                injector.getInstance(IGiveUpRequestsCountRepository.class));
     }
 
     @Test

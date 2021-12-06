@@ -1,46 +1,59 @@
 package com.company;
 
+import com.company.botBehavior.ChatBotResponse;
+import com.company.botBehavior.IChatBotLogic;
 import com.company.botBehavior.RemindPolicy;
 import com.company.database.*;
+import com.company.inject.BasicModule;
 import com.company.quiz.QuestionsParser;
 import com.company.quiz.QuizLogic;
+import com.company.quiz.QuizQuestion;
+import com.company.wrappers.ConsoleChatWrapper;
 import com.company.wrappers.TelegramBotWrapper;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Logger;
 
 public class Main {
+    private static Injector injector;
+
     public static void main(String[] args) {
+        try {
+            compositionRootInitialize();
+        } catch(Error e) {
+            e.printStackTrace();
+        }
         var env = System.getenv();
         var token = env.getOrDefault("tgBotToken", "");
-        var dbPath = env.getOrDefault("dbPath", "QuizBot.sqlite");
         if ("".equals(token)) {
             System.err.println("Telegram Bot Token not submitted");
             return;
         }
-
-        var questions = QuestionsParser.fromTextFile("quiz_questions.txt", "\\*");
-        var remindPolicy = new RemindPolicy(5, 3 * 24 * 60 * 60);
-        var dbCore = new DatabaseCoreSQLite(dbPath);
-        var questionRepo = new QuestionIdRepositorySQLite(dbCore);
-        var remindRepo = new RemindRepositorySQLite(dbCore,remindPolicy);
-        var scoreRepo = new ScoreRepositorySQLite(dbCore);
-        var statesRepo = new StatesRepositorySQLite(dbCore);
-        var userNameRepo = new UserNamesRepositorySQLite(dbCore);
-        var wrongRepo = new WrongAnswersCountRepositorySQLite(dbCore);
-        var giveUpRepo = new GiveUpRequestsCountRepositorySQLite(dbCore);
-        var botLogic = new QuizLogic(questions, questionRepo, remindRepo, scoreRepo,
-                statesRepo, userNameRepo, wrongRepo, giveUpRepo);
+       // var questions = QuestionsParser.fromTextFile("quiz_questions.txt", "\\*");
+        var botLogic = injector.getInstance(IChatBotLogic.class);
 
         var bot = new TelegramBotWrapper(botLogic, token);
-        bot.run();
+        var consoleBot = new ConsoleChatWrapper(botLogic);
+        consoleBot.run();
+        //  bot.run();
 
         var selfInducedTimer = new Timer();
-        selfInducedTimer.scheduleAtFixedRate(new TimerTask(){
+        selfInducedTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
-            public void run(){
+            public void run() {
                 bot.callSelfInduced();
             }
-        },0, 5000);
+        }, 0, 5000);
+    }
+
+    private static void compositionRootInitialize() {
+        injector = Guice.createInjector(new BasicModule());
+
     }
 }

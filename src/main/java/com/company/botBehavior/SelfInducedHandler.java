@@ -25,4 +25,6 @@ public class SelfInducedHandler {
                 ? response.SelfInducedNotOverYet()
                 : response;
     }
+
 }
+

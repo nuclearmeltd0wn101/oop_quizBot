@@ -1,8 +1,11 @@
 package com.company.database;
 
+import com.google.inject.Inject;
+
 public class WrongAnswersCountRepositorySQLite implements IWrongAnswersCountRepository {
     private final CountRepositorySQLite countRepo;
 
+    @Inject
     public WrongAnswersCountRepositorySQLite(IDatabaseCoreSQLite db) {
         countRepo = new CountRepositorySQLite(db, "wrongAnswers");
     }

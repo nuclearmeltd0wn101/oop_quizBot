@@ -3,6 +3,7 @@ package com.company.quiz;
 import com.company.botBehavior.*;
 import com.company.database.*;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -28,7 +29,7 @@ public class QuizLogic implements IChatBotLogic {
     private final IWrongAnswersCountRepository wrongRepo;
     private final IGiveUpRequestsCountRepository giveUpRepo;
 
-
+    @Inject
     public QuizLogic(ArrayList<QuizQuestion> questions, IQuestionIdRepository questionRepo,
                      IRemindRepository remindRepo, IScoreRepository scoreRepo, IStatesRepository statesRepo,
                      IUserNamesRepository userNameRepo, IWrongAnswersCountRepository wrongRepo, IGiveUpRequestsCountRepository giveUpRepo) {
