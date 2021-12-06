@@ -9,6 +9,7 @@ import com.company.quiz.QuizQuestion;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -28,7 +29,7 @@ public class BasicModule extends AbstractModule {
         bind(IUserNamesRepository.class).to(UserNamesRepositorySQLite.class);
         bind(IWrongAnswersCountRepository.class).to(WrongAnswersCountRepositorySQLite.class);
         bind(IGiveUpRequestsCountRepository.class).to(GiveUpRequestsCountRepositorySQLite.class);
-        bind(new TypeLiteral<List<QuizQuestion>>() {})
+        bind(new TypeLiteral<ArrayList<QuizQuestion>>() {})
                 .toInstance(QuestionsParser.fromTextFile("quiz_questions.txt", "\\*"));
         bind(IChatBotLogic.class).to(QuizLogic.class);
     }

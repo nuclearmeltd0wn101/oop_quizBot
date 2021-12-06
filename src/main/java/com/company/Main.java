@@ -35,9 +35,7 @@ public class Main {
             System.err.println("Telegram Bot Token not submitted");
             return;
         }
-       // var questions = QuestionsParser.fromTextFile("quiz_questions.txt", "\\*");
         var botLogic = injector.getInstance(IChatBotLogic.class);
-
         var bot = new TelegramBotWrapper(botLogic, token);
         var consoleBot = new ConsoleChatWrapper(botLogic);
         consoleBot.run();
