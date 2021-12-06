@@ -1,7 +1,6 @@
 package com.company;
 
 import com.company.botBehavior.ChatBotEvent;
-import com.company.botBehavior.RemindPolicy;
 import com.company.database.*;
 import com.company.inject.BasicModule;
 import com.company.quiz.QuizLogic;
@@ -40,21 +39,7 @@ class QuizLogicTest {
         questions.add(new QuizQuestion(0, testQuestion, testAnswer));
         var dbCore = new DatabaseCoreSQLite(null);
         initializeDatabaseRepos(dbCore);
-        var questionRepo = new QuestionIdRepositorySQLite(dbCore);
-        var remindRepo = new RemindRepositorySQLite(dbCore, new RemindPolicy());
-        var scoreRepo = new ScoreRepositorySQLite(dbCore);
-        var statesRepo = new StatesRepositorySQLite(dbCore);
-        var userNameRepo = new UserNamesRepositorySQLite(dbCore);
-        var wrongRepo = new WrongAnswersCountRepositorySQLite(dbCore);
-        var giveUpRepo = new GiveUpRequestsCountRepositorySQLite(dbCore);
-//        botLogic = new QuizLogic(questions, questionRepo, remindRepo, scoreRepo,
-//                statesRepo, userNameRepo, wrongRepo, giveUpRepo);
         var injector = Guice.createInjector(new BasicModule());
-        /*var bindings = injector.getAllBindings().entrySet();
-        for (var e :
-                bindings) {
-            System.out.println(e);
-        }*/
         botLogic = new QuizLogic(questions,
                 injector.getInstance(IQuestionIdRepository.class),
                 injector.getInstance(IRemindRepository.class),

@@ -5,7 +5,6 @@ import com.company.database.*;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Random;
 
 public class QuizLogic implements IChatBotLogic {
@@ -20,7 +19,10 @@ public class QuizLogic implements IChatBotLogic {
     private static final int secondHintThreshold = 5;
 
     private final ArrayList<QuizQuestion> questions;
-    private final Random rand;
+
+    @Inject
+    private Random rand;
+
     private final IQuestionIdRepository questionRepo;
     private final IRemindRepository remindRepo;
     private final IScoreRepository scoreRepo;
@@ -30,11 +32,22 @@ public class QuizLogic implements IChatBotLogic {
     private final IGiveUpRequestsCountRepository giveUpRepo;
 
     @Inject
-    public QuizLogic(ArrayList<QuizQuestion> questions, IQuestionIdRepository questionRepo,
-                     IRemindRepository remindRepo, IScoreRepository scoreRepo, IStatesRepository statesRepo,
-                     IUserNamesRepository userNameRepo, IWrongAnswersCountRepository wrongRepo, IGiveUpRequestsCountRepository giveUpRepo) {
+    private SelfInducedHandler selfInducedHandler;
+
+    @Inject
+    private DisplayOfScore displayOfScore;
+
+    @Inject
+    public QuizLogic(ArrayList<QuizQuestion> questions,
+                     IQuestionIdRepository questionRepo,
+                     IRemindRepository remindRepo,
+                     IScoreRepository scoreRepo,
+                     IStatesRepository statesRepo,
+                     IUserNamesRepository userNameRepo,
+                     IWrongAnswersCountRepository wrongRepo,
+                     IGiveUpRequestsCountRepository giveUpRepo)
+    {
         this.questions = questions;
-        rand = new Random();
         this.questionRepo = questionRepo;
         this.remindRepo = remindRepo;
         this.scoreRepo = scoreRepo;
@@ -46,7 +59,7 @@ public class QuizLogic implements IChatBotLogic {
 
     private ChatBotResponse quizHandler(ChatBotEvent event, State state) {
         if (event.message.contains("/score")) {
-            return new DisplayOfScore(scoreRepo, userNameRepo).display(event)
+            return displayOfScore.display(event)
                     .AddTelegramSticker("CAACAgIAAxkBAAEDVPlhmilWc7ZzcjRMtge8ij3llCTEQAACYwQAAs7Y6Asx61tywusibCIE");
         }
 
@@ -92,11 +105,8 @@ public class QuizLogic implements IChatBotLogic {
 
 
     public ChatBotResponse handler(IEvent event) {
-
         if (event instanceof SelfInducedEvent)
-            return new SelfInducedHandler(remindRepo, new ArrayList<>(Arrays.
-                    asList("ты забыл обо мне?", "не хотите сыграть?", "готов задать вопрос", "Давай сыграем!"
-                            , "проверим твою эрудицию?"))).induce();
+            return selfInducedHandler.induce();
         if (event instanceof ChatBotEvent cast) {
             if (!cast.isPrivateChat && !cast.isMentioned) // ignore public chat w\o mention
                 return null;

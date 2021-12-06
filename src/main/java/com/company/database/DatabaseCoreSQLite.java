@@ -1,6 +1,7 @@
 package com.company.database;
 
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -14,7 +15,7 @@ public class DatabaseCoreSQLite implements IDatabaseCoreSQLite {
     private final Connection connection;
 
     @Inject
-    public DatabaseCoreSQLite(String dbFilePath) {
+    public DatabaseCoreSQLite(@Named("dbPath") String dbFilePath) {
         Connection connection = null;
         dbFilePath = dbFilePath == null
                 ? ":memory:"
