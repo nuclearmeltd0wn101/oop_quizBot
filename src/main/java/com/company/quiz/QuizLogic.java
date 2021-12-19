@@ -44,21 +44,21 @@ public class QuizLogic implements IChatBotLogic {
     }
 
     private ChatBotResponse quizHandler(ChatBotEvent event, State state) {
-        if (event.message.contains("/score")) {
+        if (event.message.contains(UserCommands.Score.text)) {
             return new DisplayOfScore(scoreRepo, userNameRepo).display(event)
                     .AddTelegramSticker(Stickers.Score.token);
         }
 
-        if (event.message.contains("/help") || event.message.contains("/start"))
+        if (event.message.contains(UserCommands.Help.text) || event.message.contains(UserCommands.Start.text))
             return event.toResponse(
                             !event.isPrivateChat
                                     ? StringConstants.greetMessageChat
                                     : StringConstants.greetMessagePM)
                     .AddTelegramSticker(Stickers.Greet.token);
-        if (event.message.contains("повтор")) {
+        if (event.message.contains(UserCommands.Repeat.text)) {
             return event.toResponse(questions.get(questionRepo.Get(event.chatId)).question);
         }
-        if (event.message.toLowerCase().contains("вопрос")) {
+        if (event.message.toLowerCase().contains(UserCommands.Question.text)) {
             if (state != State.Inactive)
                 return event.toResponse(StringConstants.questionAlreadyExistMessage)
                         .AddTelegramSticker(Stickers.QuestionAlreadyExists.token);
@@ -80,7 +80,7 @@ public class QuizLogic implements IChatBotLogic {
                         .AddTelegramSticker(Stickers.RightAnswer.token);
             }
 
-            if (event.message.toLowerCase().contains("сдаюсь"))
+            if (event.message.toLowerCase().contains(UserCommands.ThrowUp.text))
                 return processGiveUpRequest(event);
 
             return processWrongAnswer(event, question);
@@ -96,13 +96,13 @@ public class QuizLogic implements IChatBotLogic {
             return new SelfInducedHandler(remindRepo, new ArrayList<>(Arrays.
                     asList("ты забыл обо мне?", "не хотите сыграть?", "готов задать вопрос", "Давай сыграем!"
                             , "проверим твою эрудицию?"))).induce();
-        if (event instanceof ChatBotEvent cast) {
-            if (!cast.isPrivateChat && !cast.isMentioned) // ignore public chat w\o mention
+        if (event instanceof ChatBotEvent chatBotEvent) {
+            if (!chatBotEvent.isPrivateChat && !chatBotEvent.isMentioned) // ignore public chat w\o mention
                 return null;
 
-            remindRepo.updateLastActiveTimestamp(cast.chatId);
-            var state = statesRepo.Get(cast.chatId) == 0 ? State.Inactive : State.WaitingForTheAnswer;
-            return quizHandler(cast, state);
+            remindRepo.updateLastActiveTimestamp(chatBotEvent.chatId);
+            var state = statesRepo.Get(chatBotEvent.chatId) == 0 ? State.Inactive : State.WaitingForTheAnswer;
+            return quizHandler(chatBotEvent, state);
         }
         throw new IllegalStateException();
     }
