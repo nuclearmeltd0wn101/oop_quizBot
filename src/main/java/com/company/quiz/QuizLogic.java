@@ -2,24 +2,26 @@ package com.company.quiz;
 
 import com.company.botBehavior.*;
 import com.company.database.*;
-
+import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Random;
 
 public class QuizLogic implements IChatBotLogic {
-    enum State {
+    enum State
+    {
         Inactive,
         WaitingForTheAnswer
     }
-
     private static final int giveUpCountRequired = 2;
     private static final int wrongAnswersLimit = 9;
     private static final int firstHintThreshold = 2;
     private static final int secondHintThreshold = 5;
 
     private final ArrayList<QuizQuestion> questions;
-    private final Random rand;
+
+    @Inject
+    private Random rand;
+
     private final IQuestionIdRepository questionRepo;
     private final IRemindRepository remindRepo;
     private final IScoreRepository scoreRepo;
@@ -28,12 +30,23 @@ public class QuizLogic implements IChatBotLogic {
     private final IWrongAnswersCountRepository wrongRepo;
     private final IGiveUpRequestsCountRepository giveUpRepo;
 
+    @Inject
+    private SelfInducedHandler selfInducedHandler;
 
-    public QuizLogic(ArrayList<QuizQuestion> questions, IQuestionIdRepository questionRepo,
-                     IRemindRepository remindRepo, IScoreRepository scoreRepo, IStatesRepository statesRepo,
-                     IUserNamesRepository userNameRepo, IWrongAnswersCountRepository wrongRepo, IGiveUpRequestsCountRepository giveUpRepo) {
+    @Inject
+    private DisplayOfScore displayOfScore;
+
+    @Inject
+    public QuizLogic(ArrayList<QuizQuestion> questions,
+                     IQuestionIdRepository questionRepo,
+                     IRemindRepository remindRepo,
+                     IScoreRepository scoreRepo,
+                     IStatesRepository statesRepo,
+                     IUserNamesRepository userNameRepo,
+                     IWrongAnswersCountRepository wrongRepo,
+                     IGiveUpRequestsCountRepository giveUpRepo)
+    {
         this.questions = questions;
-        rand = new Random();
         this.questionRepo = questionRepo;
         this.remindRepo = remindRepo;
         this.scoreRepo = scoreRepo;
@@ -93,16 +106,14 @@ public class QuizLogic implements IChatBotLogic {
     public ChatBotResponse handler(IEvent event) {
 
         if (event instanceof SelfInducedEvent)
-            return new SelfInducedHandler(remindRepo, new ArrayList<>(Arrays.
-                    asList("ты забыл обо мне?", "не хотите сыграть?", "готов задать вопрос", "Давай сыграем!"
-                            , "проверим твою эрудицию?"))).induce();
-        if (event instanceof ChatBotEvent chatBotEvent) {
-            if (!chatBotEvent.isPrivateChat && !chatBotEvent.isMentioned) // ignore public chat w\o mention
+            return selfInducedHandler.induce();
+        if (event instanceof ChatBotEvent cast) {
+            if (!cast.isPrivateChat && !cast.isMentioned) // ignore public chat w\o mention
                 return null;
 
-            remindRepo.updateLastActiveTimestamp(chatBotEvent.chatId);
-            var state = statesRepo.Get(chatBotEvent.chatId) == 0 ? State.Inactive : State.WaitingForTheAnswer;
-            return quizHandler(chatBotEvent, state);
+            remindRepo.updateLastActiveTimestamp(cast.chatId);
+            var state = statesRepo.Get(cast.chatId) == 0 ? State.Inactive : State.WaitingForTheAnswer;
+            return quizHandler(cast, state);
         }
         throw new IllegalStateException();
     }
@@ -141,7 +152,7 @@ public class QuizLogic implements IChatBotLogic {
 
         wrongRepo.Increment(event.chatId);
         return event.toResponse(sb.toString())
-                .AddTelegramSticker(Stickers.WrongAnswer.token);
+                .AddTelegramSticker("CAACAgIAAxkBAAEDSjNhkoAkb9KIVhJ0xTBLBn5HdDeE5QACrBIAAmCRIEnnz3aDncA0fCIE");
     }
 
     private String getRemainingAnswersCountMessage(int failureCount) {

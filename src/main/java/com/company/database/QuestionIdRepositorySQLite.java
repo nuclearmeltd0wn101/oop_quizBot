@@ -1,8 +1,11 @@
 package com.company.database;
 
+import com.google.inject.Inject;
+
 public class QuestionIdRepositorySQLite implements IQuestionIdRepository {
     private final IDatabaseCoreSQLite db;
 
+    @Inject
     public QuestionIdRepositorySQLite(IDatabaseCoreSQLite db) {
         this.db = db;
     }

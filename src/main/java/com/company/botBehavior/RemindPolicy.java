@@ -1,5 +1,7 @@
 package com.company.botBehavior;
 
+import com.google.inject.Inject;
+
 public class RemindPolicy {
     public final int maxAttempts;
     public final long delaySeconds;
@@ -9,6 +11,7 @@ public class RemindPolicy {
         delaySeconds = 3 * 24 * 60 * 60;
     }
 
+    @Inject
     public RemindPolicy(int maxAttempts, long delaySeconds) {
         if (maxAttempts <= 0 || delaySeconds <= 0)
             throw new IllegalArgumentException();

@@ -4,6 +4,8 @@ import com.company.botBehavior.ChatBotEvent;
 import com.company.botBehavior.ChatBotResponse;
 import com.company.botBehavior.IChatBotLogic;
 import com.company.botBehavior.SelfInducedEvent;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
@@ -27,10 +29,27 @@ public class TelegramBotWrapper implements IChatBotWrapper {
     private GetMeResponse m_getMeResponse;
     private String m_usernameMentionSubstring;
 
+    @Inject
+    public TelegramBotWrapper(IChatBotLogic botLogic, @Named("botToken") String botToken) {
+        if (botLogic == null) {
+            throw new IllegalArgumentException("Bot logic not submitted");
+        }
 
-    public TelegramBotWrapper(IChatBotLogic botLogic, String botToken) {
+        if (botToken == null || "".equals(botToken)) {
+            throw new IllegalArgumentException("Telegram Bot Token not submitted");
+        }
+
         m_botLogic = botLogic;
         this.m_botToken = botToken;
+
+        m_bot = new TelegramBot(m_botToken);
+
+        m_getMeResponse = m_bot.execute(new GetMe());
+        if (m_getMeResponse.user() == null)
+            throw new IllegalStateException("Invalid bot token");
+
+        System.out.println(m_getMeResponse);
+        m_usernameMentionSubstring = "@" + m_getMeResponse.user().username().toLowerCase();
     }
 
     private String getName(User user) {
@@ -43,8 +62,7 @@ public class TelegramBotWrapper implements IChatBotWrapper {
         return user.firstName() + " " + user.lastName();
     }
 
-    private void sendResponse(ChatBotResponse response)
-    {
+    private void sendResponse(ChatBotResponse response) {
         if (m_bot == null)
             throw new IllegalStateException();
 
@@ -52,15 +70,13 @@ public class TelegramBotWrapper implements IChatBotWrapper {
             return;
 
         var request = new SendMessage(response.chatId, response.message);
-        SendSticker sticker=null;
-        if (response.telegramStickerId != null)
-        {
-            sticker=new SendSticker(response.chatId,response.telegramStickerId);
+        SendSticker sticker = null;
+        if (response.telegramStickerId != null) {
+            sticker = new SendSticker(response.chatId, response.telegramStickerId);
         }
         var sendResponse = m_bot.execute(request.parseMode(ParseMode.Markdown).replyMarkup(createKeyboard()));
 
-        if (sticker != null)
-        {
+        if (sticker != null) {
             m_bot.execute(sticker);
         }
         if (!sendResponse.isOk())
@@ -69,14 +85,12 @@ public class TelegramBotWrapper implements IChatBotWrapper {
                     response.message);
     }
 
-    public void callSelfInduced()
-    {
+    public void callSelfInduced() {
         if (m_bot == null)
             throw new IllegalStateException();
 
         var isEndReached = false;
-        while (!isEndReached && m_bot != null)
-        {
+        while (!isEndReached && m_bot != null) {
             var resp = m_botLogic.handler(new SelfInducedEvent());
             sendResponse(resp);
             isEndReached = resp == null || resp.isSelfInducedEnd;
@@ -110,8 +124,7 @@ public class TelegramBotWrapper implements IChatBotWrapper {
                 }
 
                 var event = new ChatBotEvent(senderId, senderUsername, message);
-                if (source.chat().type().toString().equals("group"))
-                {
+                if (source.chat().type().toString().equals("group")) {
                     event = event.toChatMessage(chatId, isMentioned);
                 }
 
@@ -123,34 +136,22 @@ public class TelegramBotWrapper implements IChatBotWrapper {
     }
 
     public void run() {
-        if (m_bot != null)
-            throw new IllegalStateException();
-
-        m_bot = new TelegramBot(m_botToken);
-
-        m_getMeResponse = m_bot.execute(new GetMe());
-        m_usernameMentionSubstring = "@" + m_getMeResponse.user().username().toLowerCase();
-
-        System.out.println(m_getMeResponse);
-
         m_bot.setUpdatesListener(updates -> {
             processUpdates(updates);
             return UpdatesListener.CONFIRMED_UPDATES_ALL;
         });
     }
 
-    public ReplyKeyboardMarkup createKeyboard()
-    {
-        var a=new KeyboardButton("/start");
-        var b=new ReplyKeyboardMarkup(a);
+    public ReplyKeyboardMarkup createKeyboard() {
+        var a = new KeyboardButton("/start");
+        var b = new ReplyKeyboardMarkup(a);
         return b.addRow("/score").addRow("/help").addRow("сдаюсь").resizeKeyboard(true);
     }
-    public void stop()
-    {
+
+    public void stop() {
         if (m_bot == null)
             return;
 
         m_bot.removeGetUpdatesListener();
-        m_bot = null;
     }
 }

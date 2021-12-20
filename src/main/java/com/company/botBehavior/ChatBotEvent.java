@@ -1,6 +1,6 @@
 package com.company.botBehavior;
 
-public class ChatBotEvent implements IEvent{
+public class ChatBotEvent implements IEvent {
     public final long chatId;
     public final long senderId;
     public final String senderUsername;
@@ -9,8 +9,7 @@ public class ChatBotEvent implements IEvent{
     public final boolean isMentioned;
 
     public ChatBotEvent(long chatId, long senderId, String senderUsername,
-                        String message, boolean isPrivateChat, boolean isMentioned)
-    {
+                        String message, boolean isPrivateChat, boolean isMentioned) {
 
         this.chatId = chatId;
         this.senderId = senderId;
@@ -21,8 +20,7 @@ public class ChatBotEvent implements IEvent{
 
     }
 
-    public ChatBotEvent(long senderId, String senderUsername, String message)
-    {
+    public ChatBotEvent(long senderId, String senderUsername, String message) {
 
         this.chatId = senderId;
         this.senderId = senderId;
@@ -33,13 +31,12 @@ public class ChatBotEvent implements IEvent{
 
     }
 
-    public ChatBotEvent toChatMessage(long chatId, boolean isMentioned)
-    {
+    public ChatBotEvent toChatMessage(long chatId, boolean isMentioned) {
         return new ChatBotEvent(chatId, senderId, senderUsername, message,
                 false, isMentioned);
     }
-    public ChatBotResponse toResponse(String message)
-    {
+
+    public ChatBotResponse toResponse(String message) {
         return new ChatBotResponse(chatId, message);
     }
 }

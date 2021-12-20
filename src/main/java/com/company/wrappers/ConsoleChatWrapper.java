@@ -9,8 +9,7 @@ public class ConsoleChatWrapper implements IChatBotWrapper {
     private final IChatBotLogic botLogic;
     private boolean isRunning;
 
-    public ConsoleChatWrapper(IChatBotLogic botLogic)
-    {
+    public ConsoleChatWrapper(IChatBotLogic botLogic) {
         this.botLogic = botLogic;
     }
 

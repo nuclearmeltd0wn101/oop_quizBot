@@ -1,12 +1,13 @@
 package com.company.quiz;
+
 import java.util.Locale;
+
 public class QuizQuestion {
     public final String question;
     private final String answer;
     public final int id;
 
-    public QuizQuestion(int id, String question, String answer)
-    {
+    public QuizQuestion(int id, String question, String answer) {
         if ((question == null) || (answer == null)
                 || (question.length() == 0) || (answer.length() == 0))
             throw new IllegalArgumentException();
