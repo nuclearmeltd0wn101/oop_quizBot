@@ -14,22 +14,24 @@ import java.util.function.Function;
 public class RemindRepositorySQLiteTests {
 
     DatabaseCoreSQLite dbCore;
+    RemindPolicy remindPolicy;
+    RemindRepositorySQLite sut;
+
+    Long chatId = 1337L;
 
     @BeforeEach
     void SetUp() {
         dbCore = Mockito.mock(DatabaseCoreSQLite.class);
+        remindPolicy = new RemindPolicy();
+        sut = new RemindRepositorySQLite(dbCore, remindPolicy);
     }
 
     @Test
-    void RemindRepository_getChat_noInactiveChatsInDB_returnsNull() {
-        var remindPolicy = new RemindPolicy();
-
+    void getChat_noInactiveChatsInDB_returnsNull() {
         Mockito.when(
                         dbCore.Get(Mockito.anyString(),
                                 Mockito.any(Function.class)))
                 .thenReturn(new ArrayList<Long>());
-
-        var sut = new RemindRepositorySQLite(dbCore, remindPolicy);
 
         var response = sut.getChat();
 
@@ -46,9 +48,8 @@ public class RemindRepositorySQLiteTests {
     }
 
     @Test
-    void RemindRepository_getChat_thereIsInactiveChatsInDB_returnsItsId() {
-        var remindPolicy = new RemindPolicy();
-        var inactiveChatInfo = new InactiveChatInfo(1337L, false);
+    void getChat_thereIsInactiveChatsInDB_returnsItsId() {
+        var inactiveChatInfo = new InactiveChatInfo(chatId, false);
         var coreCallResponse = new ArrayList<InactiveChatInfo>();
         coreCallResponse.add(inactiveChatInfo);
 
@@ -75,11 +76,7 @@ public class RemindRepositorySQLiteTests {
     }
 
     @Test
-    void RemindRepository_updateLastActiveTimestamp_passesCorrectCoreRequest() {
-        var remindPolicy = new RemindPolicy();
-        var chatId = 1337;
-        var sut = new RemindRepositorySQLite(dbCore, remindPolicy);
-
+    void updateLastActiveTimestamp_passesCorrectCoreRequest() {
         sut.updateLastActiveTimestamp(chatId);
 
         Mockito.verify(dbCore,
@@ -95,11 +92,7 @@ public class RemindRepositorySQLiteTests {
     }
 
     @Test
-    void RemindRepository_incrementRemindAttemptsCount_passesCorrectCoreRequest() {
-        var remindPolicy = new RemindPolicy();
-        var chatId = 1337;
-        var sut = new RemindRepositorySQLite(dbCore, remindPolicy);
-
+    void incrementRemindAttemptsCount_passesCorrectCoreRequest() {
         sut.incrementRemindAttemptsCount(chatId);
 
         Mockito.verify(dbCore,

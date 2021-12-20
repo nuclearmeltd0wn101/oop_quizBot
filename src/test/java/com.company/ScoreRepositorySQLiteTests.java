@@ -12,22 +12,23 @@ import java.util.function.Function;
 public class ScoreRepositorySQLiteTests {
 
     DatabaseCoreSQLite dbCore;
+    ScoreRepositorySQLite sut;
+    Long chatId = 1337L;
 
     @BeforeEach
     void SetUp() {
         dbCore = Mockito.mock(DatabaseCoreSQLite.class);
+        sut = new ScoreRepositorySQLite(dbCore);
     }
 
     @Test
-    void ScoreRepository_GetTable_NoChatIdRecord_returnsNull() {
+    void GetTable_NoChatIdRecord_returnsNull() {
         Mockito.when(
                         dbCore.Get(Mockito.anyString(),
                                 Mockito.any(Function.class)))
                 .thenReturn(new ArrayList<QuizScore>());
 
-        var sut = new ScoreRepositorySQLite(dbCore);
-
-        var scoreTable = sut.GetTable(1337);
+        var scoreTable = sut.GetTable(chatId);
 
         Assertions.assertNull(scoreTable);
         Mockito.verify(dbCore,
@@ -36,26 +37,24 @@ public class ScoreRepositorySQLiteTests {
                         Mockito.eq(
                                 String.format(
                                         SQLRequestsTemplates.ScoreRepo_GetScoreRecords.value,
-                                        1337)
+                                        chatId)
                         ),
                         Mockito.any(Function.class));
     }
 
     @Test
-    void ScoreRepository_GetTable_sortedByScoreDescending() {
-        var chatId = 1337;
+    void GetTable_sortedByScoreDescending() {
         var dbCoreGetMockResponse = new ArrayList<QuizScore>();
         dbCoreGetMockResponse.add(new QuizScore(1337, 4, 172));
-        dbCoreGetMockResponse.add(new QuizScore(1337, 1, 16));
-        dbCoreGetMockResponse.add(new QuizScore(1337, 3, 8));
-        dbCoreGetMockResponse.add(new QuizScore(1337, 2, 3));
+        dbCoreGetMockResponse.add(new QuizScore(228, 1, 16));
+        dbCoreGetMockResponse.add(new QuizScore(127001, 3, 8));
+        dbCoreGetMockResponse.add(new QuizScore(10001, 2, 3));
 
         Mockito.when(dbCore.Get(Mockito.anyString(),
                         Mockito.any(Function.class)))
                 .thenReturn(dbCoreGetMockResponse);
 
-        var scoreRepo = new ScoreRepositorySQLite(dbCore);
-        var response = scoreRepo.GetTable(chatId);
+        var response = sut.GetTable(chatId);
 
 
         for (var i = 0; i < response.length - 1; i++)
@@ -72,11 +71,8 @@ public class ScoreRepositorySQLiteTests {
     }
 
     @Test
-    void ScoreRepository_Increment_passesCorrectCoreRequest() {
-        var chatId = 1337;
+    void Increment_passesCorrectCoreRequest() {
         var userId = 127001;
-
-        var sut = new ScoreRepositorySQLite(dbCore);
 
         sut.Increment(chatId, userId);
 
@@ -91,8 +87,6 @@ public class ScoreRepositorySQLiteTests {
                                         String.format(
                                                 SQLRequestsTemplates.ScoreRepo_Increment.value,
                                                 chatId, userId)
-                                }
-                        )
-                );
+                                }));
     }
 }
