@@ -31,10 +31,10 @@ public class QuizLogic implements IChatBotLogic {
     private final IGiveUpRequestsCountRepository giveUpRepo;
 
     @Inject
-    private SelfInducedHandler selfInducedHandler;
+    public SelfInducedHandler selfInducedHandler;
 
     @Inject
-    private DisplayOfScore displayOfScore;
+    public DisplayOfScore displayOfScore;
 
     @Inject
     public QuizLogic(ArrayList<QuizQuestion> questions,
@@ -58,7 +58,7 @@ public class QuizLogic implements IChatBotLogic {
 
     private ChatBotResponse quizHandler(ChatBotEvent event, State state) {
         if (event.message.contains(UserCommands.Score.text)) {
-            return new DisplayOfScore(scoreRepo, userNameRepo).display(event)
+            return displayOfScore.display(event)
                     .AddTelegramSticker(Stickers.Score.token);
         }
 
@@ -103,17 +103,17 @@ public class QuizLogic implements IChatBotLogic {
     }
 
 
-    public ChatBotResponse handler(IEvent event) {
+    public ChatBotResponse handle(IEvent event) {
 
         if (event instanceof SelfInducedEvent)
             return selfInducedHandler.induce();
-        if (event instanceof ChatBotEvent cast) {
-            if (!cast.isPrivateChat && !cast.isMentioned) // ignore public chat w\o mention
+        if (event instanceof ChatBotEvent chatBotEvent) {
+            if (!chatBotEvent.isPrivateChat && !chatBotEvent.isMentioned) // ignore public chat w\o mention
                 return null;
 
-            remindRepo.updateLastActiveTimestamp(cast.chatId);
-            var state = statesRepo.Get(cast.chatId) == 0 ? State.Inactive : State.WaitingForTheAnswer;
-            return quizHandler(cast, state);
+            remindRepo.updateLastActiveTimestamp(chatBotEvent.chatId);
+            var state = statesRepo.Get(chatBotEvent.chatId) == 0 ? State.Inactive : State.WaitingForTheAnswer;
+            return quizHandler(chatBotEvent, state);
         }
         throw new IllegalStateException();
     }

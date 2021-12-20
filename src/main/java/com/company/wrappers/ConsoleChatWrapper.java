@@ -21,7 +21,7 @@ public class ConsoleChatWrapper implements IChatBotWrapper {
             System.out.print("Message >> ");
             var message = scan.nextLine();
             var event = new ChatBotEvent(0, "", message);
-            var response = botLogic.handler(event);
+            var response = botLogic.handle(event);
             if (response != null) {
                 System.out.print("Bot response >> ");
                 System.out.println(response.message);

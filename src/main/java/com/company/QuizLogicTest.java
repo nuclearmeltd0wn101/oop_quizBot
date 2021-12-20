@@ -9,9 +9,14 @@ import com.google.inject.Guice;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 
+@RunWith(MockitoJUnitRunner.class)
 class QuizLogicTest {
     ArrayList<QuizQuestion> questions;
     QuizLogic botLogic;
@@ -33,8 +38,12 @@ class QuizLogicTest {
         });
     }
 
+    @Mock
+    private DatabaseCoreSQLite dbCore;
+
     @BeforeEach
     void setUp() {
+        Mockito.when(dbCore.Get(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn("d");
         questions = new ArrayList<>();
         questions.add(new QuizQuestion(0, testQuestion, testAnswer));
         var dbCore = new DatabaseCoreSQLite(null);
@@ -53,14 +62,14 @@ class QuizLogicTest {
     @Test
     void handler_randomMessage_helpHint() {
         var eventRandomMessage = new ChatBotEvent(0, null, "ab");
-        var response = botLogic.handler(eventRandomMessage);
+        var response = botLogic.handle(eventRandomMessage);
         Assertions.assertEquals("Напишите /help для получения справочного сообщения", response.message);
     }
 
     @Test
     void handler_helpMessage_help() {
         var eventRandomMessage = new ChatBotEvent(0, null, "/start");
-        var response = botLogic.handler(eventRandomMessage);
+        var response = botLogic.handle(eventRandomMessage);
         Assertions.assertEquals("Привет, я - Викторина-бот!\nНапиши \"вопрос\" и я задам тебе вопрос\nНапиши /score для получения таблицы счета",
                 response.message);
     }
@@ -69,28 +78,28 @@ class QuizLogicTest {
     void handler_quizWrongAnswer() {
         var eventGiveQuestion = new ChatBotEvent(0, null, "вопрос");
         var eventAnswer = new ChatBotEvent(0, null, "$#@!");
-        botLogic.handler(eventGiveQuestion);
-        var response = botLogic.handler(eventAnswer);
+        botLogic.handle(eventGiveQuestion);
+        var response = botLogic.handle(eventAnswer);
         Assertions.assertEquals(response.message.split("\\.")[0], "Вы не угадали");
     }
 
     @Test
     void handler_quizRightAnswer() {
         var eventGiveQuestion = new ChatBotEvent(0, null, "вопрос");
-        botLogic.handler(eventGiveQuestion);
+        botLogic.handle(eventGiveQuestion);
         var eventAnswer = new ChatBotEvent(0, "aaa", testAnswer);
-        var response = botLogic.handler(eventAnswer);
+        var response = botLogic.handle(eventAnswer);
         Assertions.assertEquals(response.message, "Вы угадали!");
     }
 
     @Test
     void handler_score() {
         var eventGiveQuestion = new ChatBotEvent(0, null, "вопрос");
-        botLogic.handler(eventGiveQuestion);
+        botLogic.handle(eventGiveQuestion);
         var eventAnswer = new ChatBotEvent(0, "bbb", testAnswer);
         var score = new ChatBotEvent(0, "bbb", "/score");
-        botLogic.handler(eventAnswer);
-        var response = botLogic.handler(score);
+        botLogic.handle(eventAnswer);
+        var response = botLogic.handle(score);
         Assertions.assertEquals(response.message, "```\n" +
                 "bbb | 1```");
     }
