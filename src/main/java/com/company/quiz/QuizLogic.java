@@ -20,7 +20,7 @@ public class QuizLogic implements IChatBotLogic {
     private final ArrayList<QuizQuestion> questions;
 
     @Inject
-    private Random rand;
+    private Random rand = new Random();
 
     private final IQuestionIdRepository questionRepo;
     private final IRemindRepository remindRepo;
@@ -152,7 +152,7 @@ public class QuizLogic implements IChatBotLogic {
 
         wrongRepo.Increment(event.chatId);
         return event.toResponse(sb.toString())
-                .AddTelegramSticker("CAACAgIAAxkBAAEDSjNhkoAkb9KIVhJ0xTBLBn5HdDeE5QACrBIAAmCRIEnnz3aDncA0fCIE");
+                .AddTelegramSticker(Stickers.WrongAnswer.token);
     }
 
     private String getRemainingAnswersCountMessage(int failureCount) {

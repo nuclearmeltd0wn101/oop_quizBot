@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class QuizLogicTests {
@@ -103,14 +102,56 @@ public class QuizLogicTests {
     }
 
     @Test
-    public void handle_ShouldGetQuestionFromRepo_IfMessageContainsQuestionCommand(){
+    public void handle_ShouldGetQuestionFromRepo_IfMessageContainsQuestionCommand() {
         var questionEvent = getDefaultEventWith(UserCommands.Repeat.text);
 
-        var response = sut.handle(questionEvent);
+        sut.handle(questionEvent);
 
         Mockito.verify(questionRepo, Mockito.times(1)).Get(questionEvent.chatId);
     }
 
+    @Test
+    public void handle_ShouldReturnQuestionAlreadyExists_IfMessageContainsQuestionCommandAndStateIsNotInactive() {
+        var questionEvent = getDefaultEventWith(UserCommands.Question.text);
+        Mockito.when(statesRepo.Get(questionEvent.chatId)).thenReturn(1L);
+
+        var response = sut.handle(questionEvent);
+
+        Assertions.assertEquals(StringConstants.questionAlreadyExistMessage, response.message);
+        Assertions.assertEquals(Stickers.QuestionAlreadyExists.token, response.telegramStickerId);
+    }
+
+    @Test
+    public void handle_ShouldReturnQuestion_IfMessageContainsQuestionCommand(){
+        var questionEvent = getDefaultEventWith(UserCommands.Question.text);
+        Mockito.when(statesRepo.Get(questionEvent.chatId)).thenReturn(0L);
+        Mockito.when(questionRepo.Get(questionEvent.chatId)).thenReturn(0);
+
+        var response = sut.handle(questionEvent);
+
+        Assertions.assertEquals(questions.get(0).question, response.message);
+        Assertions.assertEquals(Stickers.Question.token, response.telegramStickerId);
+    }
+
+    @Test
+    public void handle_ShouldReturnWrongAnswerMessage_IfEventContainsWrongAnswer(){
+        var questionEvent = getDefaultEventWith("wrong answer");
+        Mockito.when(statesRepo.Get(questionEvent.chatId)).thenReturn(1L);
+        Mockito.when(wrongRepo.Get(questionEvent.chatId)).thenReturn(1);
+        var response = sut.handle(questionEvent);
+
+        Assertions.assertEquals(String.format(StringConstants.remainingAnswersCountMessageMany, 8), response.message);
+    }
+
+    @Test
+    public void handle_ShouldReturnRightAnswerMessage_IfEventContainsRightAnswer(){
+        var questionEvent = getDefaultEventWith("answer");
+        Mockito.when(statesRepo.Get(questionEvent.chatId)).thenReturn(1L);
+
+        var response = sut.handle(questionEvent);
+
+        Assertions.assertEquals(StringConstants.messageRightAnswer, response.message);
+    }
 
 
     private ChatBotEvent getDefaultEventWith(String message) {
