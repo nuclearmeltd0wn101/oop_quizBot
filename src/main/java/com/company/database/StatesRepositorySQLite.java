@@ -12,15 +12,15 @@ public class StatesRepositorySQLite implements IStatesRepository {
 
     public long Get(long chatId) {
         return db.Get(
-                String.format("SELECT state FROM states WHERE chatId = %d", chatId),
-                "state", 0L);
+                String.format(SQLRequestsTemplates.StatesRepo_GetRecord.value, chatId),
+                SQLRequestsTemplates.StatesRepo_GetColumnLabel.value, 0L);
     }
 
     public void Set(long chatId, long state) {
         db.Save(new String[]{
-                String.format("INSERT OR IGNORE into states(state, chatId) values (%d, %d)",
+                String.format(SQLRequestsTemplates.StatesRepo_InsertRecord.value,
                         state, chatId),
-                String.format("UPDATE states SET state = %d WHERE chatId = %d",
+                String.format(SQLRequestsTemplates.StatesRepo_UpdateRecord.value,
                         state, chatId)
         });
     }

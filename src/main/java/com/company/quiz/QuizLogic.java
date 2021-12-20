@@ -2,17 +2,16 @@ package com.company.quiz;
 
 import com.company.botBehavior.*;
 import com.company.database.*;
-
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Random;
 
 public class QuizLogic implements IChatBotLogic {
-    enum State {
+    enum State
+    {
         Inactive,
         WaitingForTheAnswer
     }
-
     private static final int giveUpCountRequired = 2;
     private static final int wrongAnswersLimit = 9;
     private static final int firstHintThreshold = 2;
@@ -21,7 +20,7 @@ public class QuizLogic implements IChatBotLogic {
     private final ArrayList<QuizQuestion> questions;
 
     @Inject
-    private Random rand;
+    private Random rand = new Random();
 
     private final IQuestionIdRepository questionRepo;
     private final IRemindRepository remindRepo;
@@ -32,10 +31,10 @@ public class QuizLogic implements IChatBotLogic {
     private final IGiveUpRequestsCountRepository giveUpRepo;
 
     @Inject
-    private SelfInducedHandler selfInducedHandler;
+    public SelfInducedHandler selfInducedHandler;
 
     @Inject
-    private DisplayOfScore displayOfScore;
+    public DisplayOfScore displayOfScore;
 
     @Inject
     public QuizLogic(ArrayList<QuizQuestion> questions,
@@ -58,28 +57,28 @@ public class QuizLogic implements IChatBotLogic {
     }
 
     private ChatBotResponse quizHandler(ChatBotEvent event, State state) {
-        if (event.message.contains("/score")) {
+        if (event.message.contains(UserCommands.Score.text)) {
             return displayOfScore.display(event)
-                    .AddTelegramSticker("CAACAgIAAxkBAAEDVPlhmilWc7ZzcjRMtge8ij3llCTEQAACYwQAAs7Y6Asx61tywusibCIE");
+                    .AddTelegramSticker(Stickers.Score.token);
         }
 
-        if (event.message.contains("/help") || event.message.contains("/start"))
+        if (event.message.contains(UserCommands.Help.text) || event.message.contains(UserCommands.Start.text))
             return event.toResponse(
                             !event.isPrivateChat
                                     ? StringConstants.greetMessageChat
                                     : StringConstants.greetMessagePM)
-                    .AddTelegramSticker("CAACAgIAAxkBAAEDShFhkmhuE5lz_InXvOrrxZifKKaxYQACuwIAAqKK8QdcF8HD_GCZXyIE");
-        if (event.message.contains("повтор")) {
+                    .AddTelegramSticker(Stickers.Greet.token);
+        if (event.message.contains(UserCommands.Repeat.text)) {
             return event.toResponse(questions.get(questionRepo.Get(event.chatId)).question);
         }
-        if (event.message.toLowerCase().contains("вопрос")) {
+        if (event.message.toLowerCase().contains(UserCommands.Question.text)) {
             if (state != State.Inactive)
                 return event.toResponse(StringConstants.questionAlreadyExistMessage)
-                        .AddTelegramSticker("CAACAgIAAxkBAAEDShdhkm4DsdJFl_mBL851mR8Ca_gxDwACsQ0AAjppOUjINKv7N0gdWiIE");
+                        .AddTelegramSticker(Stickers.QuestionAlreadyExists.token);
 
             var question = updateQuestion(event);
             return event.toResponse(question.question)
-                    .AddTelegramSticker("CAACAgIAAxkBAAEDShdhkm4DsdJFl_mBL851mR8Ca_gxDwACsQ0AAjppOUjINKv7N0gdWiIE");
+                    .AddTelegramSticker(Stickers.Question.token);
         }
 
         if (state != State.Inactive) {
@@ -91,10 +90,10 @@ public class QuizLogic implements IChatBotLogic {
                 scoreRepo.Increment(event.chatId, event.senderId);
                 resetQuestion(event);
                 return event.toResponse(StringConstants.messageRightAnswer)
-                        .AddTelegramSticker("CAACAgIAAxkBAAEDSjthkoEJoQKIsjn-1zi9UzVQFkI-jAAC4w0AArAsKUkmVocAAbI_aIAiBA");
+                        .AddTelegramSticker(Stickers.RightAnswer.token);
             }
 
-            if (event.message.toLowerCase().contains("сдаюсь"))
+            if (event.message.toLowerCase().contains(UserCommands.ThrowUp.text))
                 return processGiveUpRequest(event);
 
             return processWrongAnswer(event, question);
@@ -104,16 +103,17 @@ public class QuizLogic implements IChatBotLogic {
     }
 
 
-    public ChatBotResponse handler(IEvent event) {
+    public ChatBotResponse handle(IEvent event) {
+
         if (event instanceof SelfInducedEvent)
             return selfInducedHandler.induce();
-        if (event instanceof ChatBotEvent cast) {
-            if (!cast.isPrivateChat && !cast.isMentioned) // ignore public chat w\o mention
+        if (event instanceof ChatBotEvent chatBotEvent) {
+            if (!chatBotEvent.isPrivateChat && !chatBotEvent.isMentioned) // ignore public chat w\o mention
                 return null;
 
-            remindRepo.updateLastActiveTimestamp(cast.chatId);
-            var state = statesRepo.Get(cast.chatId) == 0 ? State.Inactive : State.WaitingForTheAnswer;
-            return quizHandler(cast, state);
+            remindRepo.updateLastActiveTimestamp(chatBotEvent.chatId);
+            var state = statesRepo.Get(chatBotEvent.chatId) == 0 ? State.Inactive : State.WaitingForTheAnswer;
+            return quizHandler(chatBotEvent, state);
         }
         throw new IllegalStateException();
     }
@@ -152,7 +152,7 @@ public class QuizLogic implements IChatBotLogic {
 
         wrongRepo.Increment(event.chatId);
         return event.toResponse(sb.toString())
-                .AddTelegramSticker("CAACAgIAAxkBAAEDSjNhkoAkb9KIVhJ0xTBLBn5HdDeE5QACrBIAAmCRIEnnz3aDncA0fCIE");
+                .AddTelegramSticker(Stickers.WrongAnswer.token);
     }
 
     private String getRemainingAnswersCountMessage(int failureCount) {

@@ -1,9 +1,12 @@
 package com.company.database;
 
+import com.google.inject.Inject;
+
 public class CountRepositorySQLite implements ICountRepository {
     private final IDatabaseCoreSQLite db;
     private final String countName;
 
+    @Inject
     public CountRepositorySQLite(IDatabaseCoreSQLite db, String countName) {
         if (countName == null)
             throw new IllegalArgumentException();
@@ -13,23 +16,26 @@ public class CountRepositorySQLite implements ICountRepository {
     }
 
     public int Get(long chatId) {
-        return (int)db.Get(String.format("SELECT count FROM %s WHERE chatId = %d",
-                        countName, chatId),
-                "count", 0);
+        return (int)db.Get(String.format(
+                SQLRequestsTemplates.CountRepo_GetRecord.value,
+                countName, chatId),
+                SQLRequestsTemplates.CountRepo_GetColumnLabel.value, 0);
     }
 
     public void Increment(long chatId) {
         db.Save(new String[]{
-                String.format("INSERT OR IGNORE into %s(count, chatId) values (0, %d)",
+                String.format(
+                        SQLRequestsTemplates.CountRepo_InsertRecord.value,
                         countName, chatId),
-                String.format("UPDATE %s SET count = count + 1 WHERE chatId = %d",
+                String.format(
+                        SQLRequestsTemplates.CountRepo_Increment.value,
                         countName, chatId)
         });
     }
 
     public void Reset(long chatId) {
         db.Save(new String[]{
-                String.format("UPDATE %s SET count = 0 WHERE chatId = %d",
+                String.format(SQLRequestsTemplates.CountRepo_Reset.value,
                         countName, chatId)
         });
     }
