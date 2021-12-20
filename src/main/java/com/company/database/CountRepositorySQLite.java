@@ -13,16 +13,19 @@ public class CountRepositorySQLite implements ICountRepository {
     }
 
     public int Get(long chatId) {
-        return (int)db.Get(String.format("SELECT count FROM %s WHERE chatId = %d",
-                        countName, chatId),
+        return (int)db.Get(String.format(
+                SQLRequestsTemplates.CountRepo_GetRecord.value,
+                countName, chatId),
                 "count", 0);
     }
 
     public void Increment(long chatId) {
         db.Save(new String[]{
-                String.format("INSERT OR IGNORE into %s(count, chatId) values (0, %d)",
+                String.format(
+                        SQLRequestsTemplates.CountRepo_InsertRecord.value,
                         countName, chatId),
-                String.format("UPDATE %s SET count = count + 1 WHERE chatId = %d",
+                String.format(
+                        SQLRequestsTemplates.CountRepo_UpdateRecord.value,
                         countName, chatId)
         });
     }

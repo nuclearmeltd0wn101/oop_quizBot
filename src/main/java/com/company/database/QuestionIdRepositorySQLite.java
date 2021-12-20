@@ -11,15 +11,15 @@ public class QuestionIdRepositorySQLite implements IQuestionIdRepository {
     }
 
     public int Get(long chatId) {
-        return (int)db.Get(String.format("SELECT questionId FROM questionIds WHERE chatId = %d", chatId),
+        return (int)db.Get(String.format(SQLRequestsTemplates.QuestionIdRepo_GetRecord.value, chatId),
                 "questionId", 0);
     }
 
     public void Set(long chatId, int questionId) {
         db.Save(new String[]{
-                String.format("INSERT OR IGNORE into questionIds(questionId, chatId) values (%d, %d)",
+                String.format(SQLRequestsTemplates.QuestionIdRepo_InsertRecord.value,
                         questionId, chatId),
-                String.format("UPDATE questionIds SET questionId = %d WHERE chatId = %d",
+                String.format(SQLRequestsTemplates.QuestionIdRepo_UpdateRecord.value,
                         questionId, chatId)
         });
     }
