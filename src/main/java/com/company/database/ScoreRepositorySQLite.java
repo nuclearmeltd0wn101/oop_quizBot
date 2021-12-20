@@ -1,12 +1,14 @@
 package com.company.database;
 
 import com.company.quiz.QuizScore;
+import com.google.inject.Inject;
 
 import java.sql.SQLException;
 
 public class ScoreRepositorySQLite implements IScoreRepository {
     private final IDatabaseCoreSQLite db;
 
+    @Inject
     public ScoreRepositorySQLite(IDatabaseCoreSQLite db) {
         this.db = db;
     }

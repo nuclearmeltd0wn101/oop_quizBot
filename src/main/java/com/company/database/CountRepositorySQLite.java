@@ -1,9 +1,12 @@
 package com.company.database;
 
+import com.google.inject.Inject;
+
 public class CountRepositorySQLite implements ICountRepository {
     private final IDatabaseCoreSQLite db;
     private final String countName;
 
+    @Inject
     public CountRepositorySQLite(IDatabaseCoreSQLite db, String countName) {
         if (countName == null)
             throw new IllegalArgumentException();

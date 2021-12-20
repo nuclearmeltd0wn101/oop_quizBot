@@ -2,6 +2,7 @@ package com.company.database;
 
 import com.company.botBehavior.InactiveChatInfo;
 import com.company.botBehavior.RemindPolicy;
+import com.google.inject.Inject;
 
 import java.sql.SQLException;
 
@@ -9,6 +10,7 @@ public class RemindRepositorySQLite implements IRemindRepository {
     private final IDatabaseCoreSQLite db;
     private final RemindPolicy remindPolicy;
 
+    @Inject
     public RemindRepositorySQLite(IDatabaseCoreSQLite db, RemindPolicy remindPolicy) {
         this.db = db;
         this.remindPolicy = remindPolicy;

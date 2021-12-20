@@ -1,8 +1,11 @@
 package com.company.database;
 
+import com.google.inject.Inject;
+
 public class UserNamesRepositorySQLite implements IUserNamesRepository {
     private final IDatabaseCoreSQLite db;
 
+    @Inject
     public UserNamesRepositorySQLite(IDatabaseCoreSQLite db) {
         this.db = db;
     }
