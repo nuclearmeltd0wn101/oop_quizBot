@@ -14,10 +14,10 @@ public class ScoreRepositorySQLite implements IScoreRepository {
     public void Increment(long chatId, long userId) {
         db.Save(new String[] {
                 String.format(
-                        "INSERT OR IGNORE into score(chatId, userId, score) values (%d, %d, 0)",
+                        SQLRequestsTemplates.ScoreRepo_InsertRecord.value,
                         chatId, userId),
                 String.format(
-                        "UPDATE score SET score = score + 1 WHERE (chatId = %d) and (userId = %d)",
+                        SQLRequestsTemplates.ScoreRepo_Increment.value,
                         chatId, userId)
         });
     }
@@ -25,7 +25,7 @@ public class ScoreRepositorySQLite implements IScoreRepository {
     public QuizScore[] GetTable(long chatId) {
         var result = db.Get(
                 String.format(
-                        "SELECT userId, score FROM score WHERE chatId = %d ORDER BY score DESC",
+                        SQLRequestsTemplates.ScoreRepo_GetScoreRecords.value,
                         chatId),
                 response -> {
                     try {
