@@ -2,7 +2,6 @@ package com.company.database;
 
 import com.company.botBehavior.InactiveChatInfo;
 import com.company.botBehavior.RemindPolicy;
-import com.google.inject.Inject;
 
 import java.sql.SQLException;
 
@@ -10,7 +9,6 @@ public class RemindRepositorySQLite implements IRemindRepository {
     private final IDatabaseCoreSQLite db;
     private final RemindPolicy remindPolicy;
 
-    @Inject
     public RemindRepositorySQLite(IDatabaseCoreSQLite db, RemindPolicy remindPolicy) {
         this.db = db;
         this.remindPolicy = remindPolicy;
@@ -18,9 +16,7 @@ public class RemindRepositorySQLite implements IRemindRepository {
 
     public InactiveChatInfo getChat() {
         var resultBoxed = db.Get(
-                String.format("SELECT chatId FROM chatsInactive WHERE "
-                                + "(abs(strftime('%%s', 'now') - lastActiveTimestampUnix) >= %d)"
-                                + " AND (remindAttemptsCount < %d)",
+                String.format(SQLRequestsTemplates.RemindRepo_GetRecord.value,
                         remindPolicy.delaySeconds,
                         remindPolicy.maxAttempts),
                 response -> {
@@ -39,23 +35,19 @@ public class RemindRepositorySQLite implements IRemindRepository {
     }
 
     public void updateLastActiveTimestamp(long chatId) {
-        db.Save(new String[] { // increment count assuming this method is called for remind formation
-                String.format("INSERT OR IGNORE INTO "
-                                + "chatsInactive(chatId, lastActiveTimestampUnix, remindAttemptsCount) "
-                                + "VALUES (%d, strftime('%%s', 'now'), 0)",
+        db.Save(new String[] {
+                String.format(SQLRequestsTemplates.RemindRepo_CreateRecord.value,
                         chatId),
-                String.format("UPDATE chatsInactive"
-                            + " SET lastActiveTimestampUnix = strftime('%%s', 'now') WHERE chatId = %d",
+                String.format(SQLRequestsTemplates.RemindRepo_UpdateRecordTimestamp.value,
                         chatId)
         });
     }
 
     public void incrementRemindAttemptsCount(long chatId) {
         db.Save(new String[] {
-                String.format("UPDATE chatsInactive"
-                                + " SET remindAttemptsCount = remindAttemptsCount + 1 WHERE chatId = %s",
+                String.format(SQLRequestsTemplates.RemindRepo_IncrementAttemptsRecord.value,
                         chatId),
-                String.format("DELETE FROM chatsInactive WHERE remindAttemptsCount >= %d",
+                String.format(SQLRequestsTemplates.RemindRepo_CleanUpRecords.value,
                 remindPolicy.maxAttempts)
         });
     }

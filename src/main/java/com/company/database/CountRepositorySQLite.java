@@ -16,7 +16,7 @@ public class CountRepositorySQLite implements ICountRepository {
         return (int)db.Get(String.format(
                 SQLRequestsTemplates.CountRepo_GetRecord.value,
                 countName, chatId),
-                "count", 0);
+                SQLRequestsTemplates.CountRepo_GetColumnLabel.value, 0);
     }
 
     public void Increment(long chatId) {
@@ -25,14 +25,14 @@ public class CountRepositorySQLite implements ICountRepository {
                         SQLRequestsTemplates.CountRepo_InsertRecord.value,
                         countName, chatId),
                 String.format(
-                        SQLRequestsTemplates.CountRepo_UpdateRecord.value,
+                        SQLRequestsTemplates.CountRepo_Increment.value,
                         countName, chatId)
         });
     }
 
     public void Reset(long chatId) {
         db.Save(new String[]{
-                String.format("UPDATE %s SET count = 0 WHERE chatId = %d",
+                String.format(SQLRequestsTemplates.CountRepo_Reset.value,
                         countName, chatId)
         });
     }

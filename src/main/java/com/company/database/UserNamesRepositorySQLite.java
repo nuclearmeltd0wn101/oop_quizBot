@@ -1,26 +1,25 @@
 package com.company.database;
 
-import com.google.inject.Inject;
-
 public class UserNamesRepositorySQLite implements IUserNamesRepository {
     private final IDatabaseCoreSQLite db;
 
-    @Inject
     public UserNamesRepositorySQLite(IDatabaseCoreSQLite db) {
         this.db = db;
     }
 
     public String Get(long userId) {
-        return db.Get(String.format("SELECT name FROM userNames WHERE userId = %d", userId),
-                "name", String.format("ID %d", userId));
+        return db.Get(String.format(
+                SQLRequestsTemplates.UserNamesRepo_GetRecord.value, userId),
+                SQLRequestsTemplates.UserNamesRepo_GetColumnLabel.value,
+                String.format("ID %d", userId));
     }
 
     public void Set(long userId, String name) {
         var escapedName = name.replace("'", "''");
         db.Save(new String[] {
-                String.format("INSERT OR IGNORE into userNames(name, userId) values ('%s', %d)",
+                String.format(SQLRequestsTemplates.UserNamesRepo_CreateRecord.value,
                         escapedName, userId),
-                String.format("UPDATE userNames SET name = '%s' WHERE userId = %d",
+                String.format(SQLRequestsTemplates.UserNamesRepo_UpdateRecord.value,
                         escapedName, userId)
         });
     }

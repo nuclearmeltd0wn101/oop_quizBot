@@ -1,11 +1,8 @@
 package com.company.database;
 
-import com.google.inject.Inject;
-
 public class StatesRepositorySQLite implements IStatesRepository {
     private final IDatabaseCoreSQLite db;
 
-    @Inject
     public StatesRepositorySQLite(IDatabaseCoreSQLite db) {
         this.db = db;
     }
@@ -13,7 +10,7 @@ public class StatesRepositorySQLite implements IStatesRepository {
     public long Get(long chatId) {
         return db.Get(
                 String.format(SQLRequestsTemplates.StatesRepo_GetRecord.value, chatId),
-                "state", 0L);
+                SQLRequestsTemplates.StatesRepo_GetColumnLabel.value, 0L);
     }
 
     public void Set(long chatId, long state) {

@@ -1,5 +1,7 @@
 package com.company;
 
+import com.company.botBehavior.InactiveChatInfo;
+import com.company.botBehavior.RemindPolicy;
 import com.company.database.*;
 import com.company.quiz.QuizScore;
 import org.junit.jupiter.api.Assertions;
@@ -46,6 +48,7 @@ public class DatabaseTests {
 
     @Test
     void ScoreRepository_GetTable_sortedByScoreDescending() {
+        var chatId = 1337;
         var dbCoreGetMockResponse = new ArrayList<QuizScore>();
         dbCoreGetMockResponse.add(new QuizScore(1337, 4, 172));
         dbCoreGetMockResponse.add(new QuizScore(1337, 1, 16));
@@ -57,7 +60,7 @@ public class DatabaseTests {
                 .thenReturn(dbCoreGetMockResponse);
 
         var scoreRepo = new ScoreRepositorySQLite(dbCore);
-        var response = scoreRepo.GetTable(1337);
+        var response = scoreRepo.GetTable(chatId);
 
 
         for (var i = 0; i < response.length - 1; i++)
@@ -69,7 +72,7 @@ public class DatabaseTests {
                     Mockito.eq(
                             String.format(
                                     SQLRequestsTemplates.ScoreRepo_GetScoreRecords.value,
-                                    1337)
+                                    chatId)
                     ), Mockito.any(Function.class));
     }
 
@@ -122,7 +125,7 @@ public class DatabaseTests {
                             String.format(
                                     SQLRequestsTemplates.StatesRepo_GetRecord.value,
                                     chatIdNonexistent)),
-                    Mockito.eq("state"),
+                    Mockito.eq(SQLRequestsTemplates.StatesRepo_GetColumnLabel.value),
                     Mockito.eq(defaultValue));
     }
 
@@ -131,14 +134,18 @@ public class DatabaseTests {
         var chatIdExistent = 123569;
         var defaultValue = 0L;
         var existentValue = 3L;
+        var correctSqlRequest = String.format(
+                SQLRequestsTemplates.StatesRepo_GetRecord.value,
+                chatIdExistent);
 
         Mockito.when(dbCore.Get(
-                        Mockito.eq(
-                                String.format(
-                                        SQLRequestsTemplates.StatesRepo_GetRecord.value,
-                                        chatIdExistent)
-                        ),
-                        Mockito.eq("state"),
+                        Mockito.anyString(), Mockito.anyString(),
+                        Mockito.eq(defaultValue)))
+                .thenReturn(defaultValue);
+
+        Mockito.when(dbCore.Get(
+                        Mockito.eq(correctSqlRequest),
+                        Mockito.eq(SQLRequestsTemplates.StatesRepo_GetColumnLabel.value),
                         Mockito.eq(defaultValue)))
                 .thenReturn(existentValue);
 
@@ -150,11 +157,8 @@ public class DatabaseTests {
         Mockito.verify(dbCore,
                 Mockito.times(1))
                 .Get(
-                    Mockito.eq(
-                            String.format(
-                                    SQLRequestsTemplates.StatesRepo_GetRecord.value,
-                                    chatIdExistent)),
-                    Mockito.eq("state"),
+                    Mockito.eq(correctSqlRequest),
+                    Mockito.eq(SQLRequestsTemplates.StatesRepo_GetColumnLabel.value),
                     Mockito.eq(defaultValue));
     }
 
@@ -203,7 +207,41 @@ public class DatabaseTests {
                                 String.format(
                                     SQLRequestsTemplates.QuestionIdRepo_GetRecord.value,
                                         chatId)),
-                        Mockito.eq("questionId"),
+                        Mockito.eq(SQLRequestsTemplates.QuestionIdRepo_GetColumnLabel.value),
+                        Mockito.eq(defaultValue)
+                );
+    }
+
+    @Test
+    void QuestionIdRepository_Get_questionIdForChatIsSet_GeneralCorrectness() {
+        var defaultValue = 0L;
+        var chatId = 123569;
+        var questionId = 3L;
+        var correctSqlRequest = String.format(
+                SQLRequestsTemplates.QuestionIdRepo_GetRecord.value,
+                chatId);
+
+        Mockito.when(dbCore.Get(
+                        Mockito.anyString(), Mockito.anyString(),
+                        Mockito.eq(defaultValue)))
+                .thenReturn(defaultValue);
+
+        Mockito.when(dbCore.Get(
+                        Mockito.eq(correctSqlRequest),
+                        Mockito.eq(SQLRequestsTemplates.QuestionIdRepo_GetColumnLabel.value),
+                        Mockito.eq(defaultValue)))
+                .thenReturn(questionId);
+
+        var sut = new QuestionIdRepositorySQLite(dbCore);
+
+        var response = sut.Get(chatId);
+
+        Assertions.assertEquals(questionId, response);
+        Mockito.verify(dbCore,
+                        Mockito.times(1))
+                .Get(
+                        Mockito.eq(correctSqlRequest),
+                        Mockito.eq(SQLRequestsTemplates.QuestionIdRepo_GetColumnLabel.value),
                         Mockito.eq(defaultValue)
                 );
     }
@@ -255,87 +293,263 @@ public class DatabaseTests {
                                 String.format(
                                         SQLRequestsTemplates.CountRepo_GetRecord.value,
                                         countName, chatId)),
-                        Mockito.eq("count"),
+                        Mockito.eq(SQLRequestsTemplates.CountRepo_GetColumnLabel.value),
                         Mockito.eq(defaultValue)
                 );
     }
 
-//    @Test
-//    void getWrongAnswersIncrement_keepsMultipleChat()
-//    {
-//        var db = new QuizDBSQLite(null);
-//        for (var i = 0; i < 192; i++)
-//            db.wrongAnswersCountIncrement(123);
-//        for (var i = 0; i < 15; i++)
-//            db.wrongAnswersCountIncrement(456);
-//
-//        var response1 = db.getWrongAnswersCount(123);
-//        var response2 = db.getWrongAnswersCount(456);
-//
-//        Assertions.assertTrue(response1 != 0);
-//        Assertions.assertTrue(response2 != 0);
-//
-//        boolean firstFoundAndOk = false, secondFoundAndOk = false;
-//
-//        if (response1 == 192)
-//            firstFoundAndOk = true;
-//        if (response2 == 15)
-//            secondFoundAndOk = true;
-//
-//        Assertions.assertTrue(firstFoundAndOk);
-//        Assertions.assertTrue(secondFoundAndOk);
-//    }
-//    @Test
-//    void wrongAnswerReset_TestWork()
-//    {
-//        var db = new QuizDBSQLite(null);
-//        for (var i = 0; i < 192; i++)
-//            db.wrongAnswersCountIncrement(123);
-//        var before=db.getWrongAnswersCount(123);
-//        db.wrongAnswersCountReset(123);
-//        var after=db.getWrongAnswersCount(123);
-//        Assertions.assertNotEquals(before, after);
-//        Assertions.assertEquals(0, after);
-//
-//    }
+    @Test
+    void CountRepository_Get_ExistentChatId_GeneralCorrectness() {
+        var chatIdExistent = 123569;
+        var defaultValue = 0L;
+        var existentValue = 3L;
+        var countName = "test";
+        var correctSqlRequest = String.format(
+                SQLRequestsTemplates.CountRepo_GetRecord.value,
+                countName, chatIdExistent);
+
+        Mockito.when(dbCore.Get(
+                        Mockito.eq(correctSqlRequest),
+                        Mockito.eq(SQLRequestsTemplates.CountRepo_GetColumnLabel.value),
+                        Mockito.eq(defaultValue)))
+                .thenReturn(existentValue);
+
+        var sut = new CountRepositorySQLite(dbCore, countName);
+
+        var responseExistent = sut.Get(chatIdExistent);
+
+        Assertions.assertEquals(responseExistent, existentValue);
+        Mockito.verify(dbCore,
+                        Mockito.times(1))
+                .Get(
+                        Mockito.eq(correctSqlRequest),
+                        Mockito.eq(SQLRequestsTemplates.CountRepo_GetColumnLabel.value),
+                        Mockito.eq(defaultValue));
+    }
+
+    @Test
+    void CountRepository_Increment_passesCorrectCoreRequest() {
+        var chatId = 1337;
+        var countName = "test";
+
+        var sut = new CountRepositorySQLite(dbCore, countName);
+
+        sut.Increment(chatId);
+
+        Mockito.verify(dbCore,
+                        Mockito.times(1))
+                .Save(
+                        Mockito.eq(
+                                new String[] {
+                                        String.format(
+                                                SQLRequestsTemplates.CountRepo_InsertRecord.value,
+                                                countName, chatId),
+                                        String.format(
+                                                SQLRequestsTemplates.CountRepo_Increment.value,
+                                                countName, chatId)
+                                }));
+    }
+
+    @Test
+    void CountRepository_Reset_passesCorrectCoreRequest() {
+        var chatId = 1337;
+        var countName = "test";
+
+        var sut = new CountRepositorySQLite(dbCore, countName);
+
+        sut.Reset(chatId);
+
+        Mockito.verify(dbCore,
+                        Mockito.times(1))
+                .Save(
+                        Mockito.eq(
+                                new String[] {
+                                        String.format(
+                                                SQLRequestsTemplates.CountRepo_Reset.value,
+                                                countName, chatId)
+                                }));
+    }
 
     // UserNames Repository tests
 
-//    @Test
-//    void getUsername_TestWork()
-//    {
-//        var db = new QuizDBSQLite(null);
-//        db.getUserName(0);
-//        Assertions.assertEquals(db.getUserName(0),String.format("ID %d",0));
-//    }
-//    @Test
-//    void setUsername_TestWork()
-//    {
-//        var db = new QuizDBSQLite(null);
-//        db.setUserName(123,"alo");
-//        Assertions.assertEquals(db.getUserName(123),"alo");
-//    }
-//
-//    @Test
-//    void setUsername_singleQuoteWorks() {
-//        var db = new QuizDBSQLite(null);
-//        var name = "le 'soleil";
-//
-//        db.setUserName(228, name);
-//        Assertions.assertEquals(name, db.getUserName(228));
-//    }
-//
-//    @Test
-//    void setUsername_noInjectionVulnerable() {
-//        var db = new QuizDBSQLite(null);
-//        var name = "1”/**/UNION/**/SELECT/**/\n" +
-//                "password/**/FROM/**/USERS/**/LIMIT/**/1";
-//
-//        db.setUserName(1337, name);
-//        Assertions.assertEquals(name, db.getUserName(1337));
-//
-//        name = "\\";
-//        db.setUserName(121, name);
-//        Assertions.assertEquals(name, db.getUserName(121));
-//    }
+    @Test
+    void UserNamesRepository_Get_UnknownUserId_ReturnsCorrectDefaultString() {
+        var unknownUserId = 321;
+        var defaultValue = String.format("ID %d", unknownUserId);
+
+        Mockito.when(dbCore.Get(
+                        Mockito.anyString(), Mockito.anyString(),
+                        Mockito.eq(defaultValue)))
+                .thenReturn(defaultValue);
+
+        var sut = new UserNamesRepositorySQLite(dbCore);
+
+        var responseNonexistent = sut.Get(unknownUserId);
+
+        Assertions.assertEquals(responseNonexistent, defaultValue);
+        Mockito.verify(dbCore,
+                        Mockito.times(1))
+                .Get(
+                        Mockito.eq(
+                                String.format(
+                                        SQLRequestsTemplates.UserNamesRepo_GetRecord.value,
+                                        unknownUserId)),
+                        Mockito.eq(SQLRequestsTemplates.UserNamesRepo_GetColumnLabel.value),
+                        Mockito.eq(defaultValue));
+    }
+
+    @Test
+    void UserNamesRepository_Get_KnownUserId_GeneralCorrectness() {
+        var knownUserId = 123569;
+        var defaultValue = String.format("ID %d", knownUserId);
+        var knownValue = "aboba";
+        var correctSqlRequest = String.format(
+                SQLRequestsTemplates.UserNamesRepo_GetRecord.value,
+                knownUserId);
+
+        Mockito.when(dbCore.Get(
+                        Mockito.anyString(), Mockito.anyString(),
+                        Mockito.eq(defaultValue)))
+                .thenReturn(defaultValue);
+
+        Mockito.when(dbCore.Get(
+                        Mockito.eq(correctSqlRequest),
+                        Mockito.eq(SQLRequestsTemplates.UserNamesRepo_GetColumnLabel.value),
+                        Mockito.eq(defaultValue)))
+                .thenReturn(knownValue);
+
+        var sut = new UserNamesRepositorySQLite(dbCore);
+
+        var response = sut.Get(knownUserId);
+
+        Assertions.assertEquals(knownValue, response);
+        Mockito.verify(dbCore,
+                        Mockito.times(1))
+                .Get(
+                        Mockito.eq(correctSqlRequest),
+                        Mockito.eq(SQLRequestsTemplates.UserNamesRepo_GetColumnLabel.value),
+                        Mockito.eq(defaultValue));
+    }
+
+    @Test
+    void UserNamesRepository_Set_passesCorrectCoreRequest() {
+        var userId = 1337;
+        var userName = "herbal bebra";
+        var escapedName = userName.replace("'", "''");
+
+        var sut = new UserNamesRepositorySQLite(dbCore);
+
+        sut.Set(userId, userName);
+
+        Mockito.verify(dbCore,
+                        Mockito.times(1))
+                .Save(
+                        Mockito.eq(
+                                new String[] {
+                                        String.format(
+                                                SQLRequestsTemplates.UserNamesRepo_CreateRecord.value,
+                                                escapedName, userId),
+                                        String.format(
+                                                SQLRequestsTemplates.UserNamesRepo_UpdateRecord.value,
+                                                escapedName, userId)
+                                }));
+    }
+
+    // Remind Repository tests
+
+    // aw sheet here we go again
+
+    @Test
+    void RemindRepository_getChat_noInactiveChatsInDB_returnsNull() {
+        var remindPolicy = new RemindPolicy();
+
+        Mockito.when(
+                        dbCore.Get(Mockito.anyString(),
+                                Mockito.any(Function.class)))
+                .thenReturn(new ArrayList<Long>());
+
+        var sut = new RemindRepositorySQLite(dbCore, remindPolicy);
+
+        var response = sut.getChat();
+
+        Assertions.assertNull(response);
+        Mockito.verify(dbCore,
+                        Mockito.times(1))
+                .Get(
+                        Mockito.eq(
+                                String.format(SQLRequestsTemplates.RemindRepo_GetRecord.value,
+                                        remindPolicy.delaySeconds,
+                                        remindPolicy.maxAttempts)
+                        ),
+                        Mockito.any(Function.class));
+    }
+
+    @Test
+    void RemindRepository_getChat_thereIsInactiveChatsInDB_returnsItsId() {
+        var remindPolicy = new RemindPolicy();
+        var inactiveChatInfo = new InactiveChatInfo(1337L, false);
+        var coreCallResponse = new ArrayList<InactiveChatInfo>();
+        coreCallResponse.add(inactiveChatInfo);
+
+        var correctSqlRequest = String.format(
+                SQLRequestsTemplates.RemindRepo_GetRecord.value,
+                remindPolicy.delaySeconds,
+                remindPolicy.maxAttempts);
+
+        Mockito.when(dbCore.Get(
+                    Mockito.eq(correctSqlRequest),
+                    Mockito.any(Function.class)))
+                .thenReturn(coreCallResponse);
+
+        var sut = new RemindRepositorySQLite(dbCore, remindPolicy);
+
+        var response = sut.getChat();
+
+        Assertions.assertEquals(inactiveChatInfo, response);
+        Mockito.verify(dbCore,
+                        Mockito.times(1))
+                .Get(
+                        Mockito.eq(correctSqlRequest),
+                        Mockito.any(Function.class));
+    }
+
+    @Test
+    void RemindRepository_updateLastActiveTimestamp_passesCorrectCoreRequest() {
+        var remindPolicy = new RemindPolicy();
+        var chatId = 1337;
+        var sut = new RemindRepositorySQLite(dbCore, remindPolicy);
+
+        sut.updateLastActiveTimestamp(chatId);
+
+        Mockito.verify(dbCore,
+                        Mockito.times(1))
+                .Save(
+                        Mockito.eq(
+                                new String[] {
+                                        String.format(SQLRequestsTemplates.RemindRepo_CreateRecord.value,
+                                                chatId),
+                                        String.format(SQLRequestsTemplates.RemindRepo_UpdateRecordTimestamp.value,
+                                                chatId)
+                                }));
+    }
+
+    @Test
+    void RemindRepository_incrementRemindAttemptsCount_passesCorrectCoreRequest() {
+        var remindPolicy = new RemindPolicy();
+        var chatId = 1337;
+        var sut = new RemindRepositorySQLite(dbCore, remindPolicy);
+
+        sut.incrementRemindAttemptsCount(chatId);
+
+        Mockito.verify(dbCore,
+                        Mockito.times(1))
+                .Save(
+                        Mockito.eq(
+                                new String[] {
+                                        String.format(SQLRequestsTemplates.RemindRepo_IncrementAttemptsRecord.value,
+                                                chatId),
+                                        String.format(SQLRequestsTemplates.RemindRepo_CleanUpRecords.value,
+                                                remindPolicy.maxAttempts)
+                                }));
+    }
 }

@@ -1,18 +1,15 @@
 package com.company.database;
 
-import com.google.inject.Inject;
-
 public class QuestionIdRepositorySQLite implements IQuestionIdRepository {
     private final IDatabaseCoreSQLite db;
 
-    @Inject
     public QuestionIdRepositorySQLite(IDatabaseCoreSQLite db) {
         this.db = db;
     }
 
     public int Get(long chatId) {
         return (int)db.Get(String.format(SQLRequestsTemplates.QuestionIdRepo_GetRecord.value, chatId),
-                "questionId", 0);
+                SQLRequestsTemplates.QuestionIdRepo_GetColumnLabel.value, 0);
     }
 
     public void Set(long chatId, int questionId) {
