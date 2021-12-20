@@ -91,7 +91,7 @@ public class TelegramBotWrapper implements IChatBotWrapper {
 
         var isEndReached = false;
         while (!isEndReached && m_bot != null) {
-            var resp = m_botLogic.handler(new SelfInducedEvent());
+            var resp = m_botLogic.handle(new SelfInducedEvent());
             sendResponse(resp);
             isEndReached = resp == null || resp.isSelfInducedEnd;
         }
@@ -128,7 +128,7 @@ public class TelegramBotWrapper implements IChatBotWrapper {
                     event = event.toChatMessage(chatId, isMentioned);
                 }
 
-                var response = m_botLogic.handler(event);
+                var response = m_botLogic.handle(event);
 
                 sendResponse(response);
             }
