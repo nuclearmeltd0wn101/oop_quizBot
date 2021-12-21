@@ -11,78 +11,73 @@ import org.mockito.Mockito;
 public class UserNamesRepositorySQLiteTests {
 
     DatabaseCoreSQLite dbCore;
+    UserNamesRepositorySQLite sut;
+
+    Long userId = 321L;
+    String defaultUserName;
+    String userName = "herbal bebra";
 
     @BeforeEach
     void SetUp() {
         dbCore = Mockito.mock(DatabaseCoreSQLite.class);
+        sut = new UserNamesRepositorySQLite(dbCore);
+
+        defaultUserName = String.format("ID %d", userId);
     }
 
     @Test
-    void UserNamesRepository_Get_UnknownUserId_ReturnsCorrectDefaultString() {
-        var unknownUserId = 321;
-        var defaultValue = String.format("ID %d", unknownUserId);
+    void Get_UnknownUserId_ReturnsCorrectDefaultString() {
 
         Mockito.when(dbCore.Get(
                         Mockito.anyString(), Mockito.anyString(),
-                        Mockito.eq(defaultValue)))
-                .thenReturn(defaultValue);
+                        Mockito.eq(defaultUserName)))
+                .thenReturn(defaultUserName);
 
-        var sut = new UserNamesRepositorySQLite(dbCore);
+        var responseNonexistent = sut.Get(userId);
 
-        var responseNonexistent = sut.Get(unknownUserId);
-
-        Assertions.assertEquals(responseNonexistent, defaultValue);
+        Assertions.assertEquals(responseNonexistent, defaultUserName);
         Mockito.verify(dbCore,
                         Mockito.times(1))
                 .Get(
                         Mockito.eq(
                                 String.format(
                                         SQLRequestsTemplates.UserNamesRepo_GetRecord.value,
-                                        unknownUserId)),
+                                        userId)),
                         Mockito.eq(SQLRequestsTemplates.UserNamesRepo_GetColumnLabel.value),
-                        Mockito.eq(defaultValue));
+                        Mockito.eq(defaultUserName));
     }
 
     @Test
-    void UserNamesRepository_Get_KnownUserId_GeneralCorrectness() {
-        var knownUserId = 123569;
-        var defaultValue = String.format("ID %d", knownUserId);
-        var knownValue = "aboba";
+    void Get_KnownUserId_GeneralCorrectness() {
         var correctSqlRequest = String.format(
                 SQLRequestsTemplates.UserNamesRepo_GetRecord.value,
-                knownUserId);
+                userId);
 
         Mockito.when(dbCore.Get(
                         Mockito.anyString(), Mockito.anyString(),
-                        Mockito.eq(defaultValue)))
-                .thenReturn(defaultValue);
+                        Mockito.eq(defaultUserName)))
+                .thenReturn(defaultUserName);
 
         Mockito.when(dbCore.Get(
                         Mockito.eq(correctSqlRequest),
                         Mockito.eq(SQLRequestsTemplates.UserNamesRepo_GetColumnLabel.value),
-                        Mockito.eq(defaultValue)))
-                .thenReturn(knownValue);
+                        Mockito.eq(defaultUserName)))
+                .thenReturn(userName);
 
-        var sut = new UserNamesRepositorySQLite(dbCore);
+        var response = sut.Get(userId);
 
-        var response = sut.Get(knownUserId);
-
-        Assertions.assertEquals(knownValue, response);
+        Assertions.assertEquals(userName, response);
         Mockito.verify(dbCore,
                         Mockito.times(1))
                 .Get(
                         Mockito.eq(correctSqlRequest),
                         Mockito.eq(SQLRequestsTemplates.UserNamesRepo_GetColumnLabel.value),
-                        Mockito.eq(defaultValue));
+                        Mockito.eq(defaultUserName));
     }
 
     @Test
-    void UserNamesRepository_Set_passesCorrectCoreRequest() {
-        var userId = 1337;
-        var userName = "herbal bebra";
+    void Set_passesCorrectCoreRequest() {
         var escapedName = userName.replace("'", "''");
-
-        var sut = new UserNamesRepositorySQLite(dbCore);
 
         sut.Set(userId, userName);
 

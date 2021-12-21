@@ -11,23 +11,24 @@ import org.mockito.Mockito;
 public class QuestionIdRepositorySQLiteTests {
 
     DatabaseCoreSQLite dbCore;
+    QuestionIdRepositorySQLite sut;
+
+    Long chatId = 123569L;
+    Long defaultValue = 0L;
+    Long existentValue = 3L;
 
     @BeforeEach
     void SetUp() {
         dbCore = Mockito.mock(DatabaseCoreSQLite.class);
+        sut = new QuestionIdRepositorySQLite(dbCore);
     }
 
     @Test
-    void QuestionIdRepository_Get_noQuestionIdForChat_returnsZero() {
-        var defaultValue = 0L;
-        var chatId = 123569;
-
+    void Get_noQuestionIdForChat_returnsZero() {
         Mockito.when(dbCore.Get(
                         Mockito.anyString(), Mockito.anyString(),
                         Mockito.eq(defaultValue)))
                 .thenReturn(defaultValue);
-
-        var sut = new QuestionIdRepositorySQLite(dbCore);
 
         var response = sut.Get(chatId);
 
@@ -45,10 +46,7 @@ public class QuestionIdRepositorySQLiteTests {
     }
 
     @Test
-    void QuestionIdRepository_Get_questionIdForChatIsSet_GeneralCorrectness() {
-        var defaultValue = 0L;
-        var chatId = 123569;
-        var questionId = 3L;
+    void Get_questionIdForChatIsSet_GeneralCorrectness() {
         var correctSqlRequest = String.format(
                 SQLRequestsTemplates.QuestionIdRepo_GetRecord.value,
                 chatId);
@@ -62,30 +60,22 @@ public class QuestionIdRepositorySQLiteTests {
                         Mockito.eq(correctSqlRequest),
                         Mockito.eq(SQLRequestsTemplates.QuestionIdRepo_GetColumnLabel.value),
                         Mockito.eq(defaultValue)))
-                .thenReturn(questionId);
-
-        var sut = new QuestionIdRepositorySQLite(dbCore);
+                .thenReturn(existentValue);
 
         var response = sut.Get(chatId);
 
-        Assertions.assertEquals(questionId, response);
+        Assertions.assertEquals(existentValue, response);
         Mockito.verify(dbCore,
                         Mockito.times(1))
                 .Get(
                         Mockito.eq(correctSqlRequest),
                         Mockito.eq(SQLRequestsTemplates.QuestionIdRepo_GetColumnLabel.value),
-                        Mockito.eq(defaultValue)
-                );
+                        Mockito.eq(defaultValue));
     }
 
     @Test
-    void QuestionIdRepository_Set_GeneralCorrectness() {
-        var chatId = 123569;
-        var questionId = 3;
-
-        var sut = new QuestionIdRepositorySQLite(dbCore);
-
-        sut.Set(chatId, questionId);
+    void Set_GeneralCorrectness() {
+        sut.Set(chatId, existentValue.intValue());
 
         Mockito.verify(dbCore,
                         Mockito.times(1))
@@ -93,9 +83,9 @@ public class QuestionIdRepositorySQLiteTests {
                         Mockito.eq(
                                 new String[]{
                                         String.format(SQLRequestsTemplates.QuestionIdRepo_InsertRecord.value,
-                                                questionId, chatId),
+                                                existentValue, chatId),
                                         String.format(SQLRequestsTemplates.QuestionIdRepo_UpdateRecord.value,
-                                                questionId, chatId)
+                                                existentValue, chatId)
                                 }));
     }
 }

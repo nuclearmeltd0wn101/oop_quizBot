@@ -11,79 +11,70 @@ import org.mockito.Mockito;
 public class StatesRepositorySQLiteTests {
 
     DatabaseCoreSQLite dbCore;
+    StatesRepositorySQLite sut;
+
+    Long chatId = 321L;
+    Long defaultState = 0L;
+    Long state = 3L;
 
     @BeforeEach
     void SetUp() {
         dbCore = Mockito.mock(DatabaseCoreSQLite.class);
+        sut = new StatesRepositorySQLite(dbCore);
     }
 
     @Test
-    void StatesRepository_Get_NonexistentChatId_ReturnsZero() {
-        var chatIdNonexistent = 321;
-        var defaultValue = 0L;
-
+    void Get_NonexistentChatId_ReturnsZero() {
         Mockito.when(dbCore.Get(
                         Mockito.anyString(), Mockito.anyString(),
-                        Mockito.eq(defaultValue)))
-                .thenReturn(defaultValue);
+                        Mockito.eq(defaultState)))
+                .thenReturn(defaultState);
 
-        var sut = new StatesRepositorySQLite(dbCore);
+        var responseNonexistent = sut.Get(chatId);
 
-        var responseNonexistent = sut.Get(chatIdNonexistent);
-
-        Assertions.assertEquals(responseNonexistent, defaultValue);
+        Assertions.assertEquals(responseNonexistent, defaultState);
         Mockito.verify(dbCore,
                         Mockito.times(1))
                 .Get(
                         Mockito.eq(
                                 String.format(
                                         SQLRequestsTemplates.StatesRepo_GetRecord.value,
-                                        chatIdNonexistent)),
+                                        chatId)),
                         Mockito.eq(SQLRequestsTemplates.StatesRepo_GetColumnLabel.value),
-                        Mockito.eq(defaultValue));
+                        Mockito.eq(defaultState));
     }
 
     @Test
-    void StatesRepository_Get_ExistentChatId_GeneralCorrectness() {
-        var chatIdExistent = 123569;
-        var defaultValue = 0L;
-        var existentValue = 3L;
+    void Get_ExistentChatId_GeneralCorrectness() {
         var correctSqlRequest = String.format(
                 SQLRequestsTemplates.StatesRepo_GetRecord.value,
-                chatIdExistent);
+                chatId);
 
         Mockito.when(dbCore.Get(
                         Mockito.anyString(), Mockito.anyString(),
-                        Mockito.eq(defaultValue)))
-                .thenReturn(defaultValue);
+                        Mockito.eq(defaultState)))
+                .thenReturn(defaultState);
 
         Mockito.when(dbCore.Get(
                         Mockito.eq(correctSqlRequest),
                         Mockito.eq(SQLRequestsTemplates.StatesRepo_GetColumnLabel.value),
-                        Mockito.eq(defaultValue)))
-                .thenReturn(existentValue);
+                        Mockito.eq(defaultState)))
+                .thenReturn(state);
 
-        var sut = new StatesRepositorySQLite(dbCore);
+        var responseExistent = sut.Get(chatId);
 
-        var responseExistent = sut.Get(chatIdExistent);
-
-        Assertions.assertEquals(responseExistent, existentValue);
+        Assertions.assertEquals(responseExistent, state);
         Mockito.verify(dbCore,
                         Mockito.times(1))
                 .Get(
                         Mockito.eq(correctSqlRequest),
                         Mockito.eq(SQLRequestsTemplates.StatesRepo_GetColumnLabel.value),
-                        Mockito.eq(defaultValue));
+                        Mockito.eq(defaultState));
     }
 
     @Test
-    void StatesRepository_Set_GeneralCorrectness() {
-        var chatId = 123569;
-        var stateToSet = 3;
-
-        var sut = new StatesRepositorySQLite(dbCore);
-
-        sut.Set(chatId, stateToSet);
+    void Set_GeneralCorrectness() {
+        sut.Set(chatId, state);
 
         Mockito.verify(dbCore,
                         Mockito.times(1))
@@ -91,9 +82,9 @@ public class StatesRepositorySQLiteTests {
                         Mockito.eq(
                                 new String[]{
                                         String.format(SQLRequestsTemplates.StatesRepo_InsertRecord.value,
-                                                stateToSet, chatId),
+                                                state, chatId),
                                         String.format(SQLRequestsTemplates.StatesRepo_UpdateRecord.value,
-                                                stateToSet, chatId)
+                                                state, chatId)
                                 }));
     }
 }

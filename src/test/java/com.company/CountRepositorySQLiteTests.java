@@ -11,27 +11,29 @@ import org.mockito.Mockito;
 public class CountRepositorySQLiteTests {
 
     DatabaseCoreSQLite dbCore;
+    CountRepositorySQLite sut;
+
+    String countName = "test";
+    Long chatId = 123569L;
+    Long defaultValue = 0L;
+    Long existentValue = 3L;
+
 
     @BeforeEach
     void SetUp() {
         dbCore = Mockito.mock(DatabaseCoreSQLite.class);
+        sut = new CountRepositorySQLite(dbCore, countName);
     }
 
     // notice: these tests covers BOTH WrongAnswersCount and GiveUpRequestsCount repos too
     // because they're just wrappers above Count Repository
 
     @Test
-    void CountRepository_Get_noRecordForChatId_returnsZero() {
-        var defaultValue = 0L;
-        var chatId = 123569;
-        var countName = "test";
-
+    void Get_noRecordForChatId_returnsZero() {
         Mockito.when(dbCore.Get(
                         Mockito.anyString(), Mockito.anyString(),
                         Mockito.eq(defaultValue)))
                 .thenReturn(defaultValue);
-
-        var sut = new CountRepositorySQLite(dbCore, countName);
 
         var response = sut.Get(chatId);
 
@@ -44,19 +46,14 @@ public class CountRepositorySQLiteTests {
                                         SQLRequestsTemplates.CountRepo_GetRecord.value,
                                         countName, chatId)),
                         Mockito.eq(SQLRequestsTemplates.CountRepo_GetColumnLabel.value),
-                        Mockito.eq(defaultValue)
-                );
+                        Mockito.eq(defaultValue));
     }
 
     @Test
-    void CountRepository_Get_ExistentChatId_GeneralCorrectness() {
-        var chatIdExistent = 123569;
-        var defaultValue = 0L;
-        var existentValue = 3L;
-        var countName = "test";
+    void Get_ExistentChatId_GeneralCorrectness() {
         var correctSqlRequest = String.format(
                 SQLRequestsTemplates.CountRepo_GetRecord.value,
-                countName, chatIdExistent);
+                countName, chatId);
 
         Mockito.when(dbCore.Get(
                         Mockito.eq(correctSqlRequest),
@@ -64,9 +61,7 @@ public class CountRepositorySQLiteTests {
                         Mockito.eq(defaultValue)))
                 .thenReturn(existentValue);
 
-        var sut = new CountRepositorySQLite(dbCore, countName);
-
-        var responseExistent = sut.Get(chatIdExistent);
+        var responseExistent = sut.Get(chatId);
 
         Assertions.assertEquals(responseExistent, existentValue);
         Mockito.verify(dbCore,
@@ -78,12 +73,7 @@ public class CountRepositorySQLiteTests {
     }
 
     @Test
-    void CountRepository_Increment_passesCorrectCoreRequest() {
-        var chatId = 1337;
-        var countName = "test";
-
-        var sut = new CountRepositorySQLite(dbCore, countName);
-
+    void Increment_passesCorrectCoreRequest() {
         sut.Increment(chatId);
 
         Mockito.verify(dbCore,
@@ -101,12 +91,7 @@ public class CountRepositorySQLiteTests {
     }
 
     @Test
-    void CountRepository_Reset_passesCorrectCoreRequest() {
-        var chatId = 1337;
-        var countName = "test";
-
-        var sut = new CountRepositorySQLite(dbCore, countName);
-
+    void Reset_passesCorrectCoreRequest() {
         sut.Reset(chatId);
 
         Mockito.verify(dbCore,
