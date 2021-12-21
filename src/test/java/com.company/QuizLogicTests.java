@@ -138,6 +138,7 @@ public class QuizLogicTests {
         var questionEvent = getDefaultEventWith("wrong answer");
         Mockito.when(statesRepo.Get(questionEvent.chatId)).thenReturn(1L);
         Mockito.when(wrongRepo.Get(questionEvent.chatId)).thenReturn(1);
+
         var response = sut.handle(questionEvent);
 
         Assertions.assertEquals(String.format(StringConstants.remainingAnswersCountMessageMany, 8), response.message);
@@ -151,6 +152,25 @@ public class QuizLogicTests {
         var response = sut.handle(questionEvent);
 
         Assertions.assertEquals(StringConstants.messageRightAnswer, response.message);
+    }
+
+    @Test
+    public void handle_ShouldTryGiveUp_IfEventContainsGiveUp(){
+        var giveUpEvent = getDefaultEventWith(UserCommands.ThrowUp.text);
+        Mockito.when(statesRepo.Get(giveUpEvent.chatId)).thenReturn(1L);
+
+        sut.handle(giveUpEvent);
+
+        Mockito.verify(giveUpRepo, Mockito.times(1)).Get(giveUpEvent.chatId);
+    }
+
+    @Test
+    public void handle_ShouldReturnHelp_IfEventWithRandomMessage(){
+        var randomMessageEvent = getDefaultEventWith("random msg");
+
+        var response = sut.handle(randomMessageEvent);
+
+        Assertions.assertEquals(StringConstants.messageHelpHint, response.message);
     }
 
 
